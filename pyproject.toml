@@ -1,0 +1,106 @@
+[build-system]
+requires = ["setuptools"] 
+build-backend = "setuptools.build_meta" 
+
+[tool.setuptools]
+packages = [
+    "byaldi"
+]
+
+[project]
+name = "Byaldi" 
+version = "0.0.1rc4"
+description = "Use late-interaction multi-modal models such as ColPALI in just a few lines of code."
+readme = "README.md"
+requires-python = ">=3.8"
+license = {file = "LICENSE"}
+keywords = ["reranking", "retrieval", "rag", "nlp", "colpali", "colbert", "multi-modal"]
+authors = [
+  {name = "Ben Clavié", email = "bc@answer.ai" }
+]
+maintainers = [
+  {name = "Ben Clavié", email = "bc@answer.ai" }
+]
+
+dependencies = [
+"transformers",
+"torch",
+"ml-dtypes",
+"ninja",
+"pdf2image",
+"srsly",
+"colpali-engine==0.2.1",
+"mteb==1.6.35",
+]
+
+
+[project.optional-dependencies]
+server = [
+    "uvicorn",
+    "fastapi"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/answerdotai/byaldi"
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore::Warning"
+]
+
+[tool.ruff]
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "*.ipynb",
+    "examples",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+]
+
+# Same as Black.
+line-length = 88
+output-format = "grouped"
+
+target-version = "py39"
+
+[tool.ruff.lint]
+select = [
+  # bugbear rules
+  "B",
+  "I",
+  # remove unused imports
+  "F401",
+  # bare except statements
+  "E722",
+  # unused arguments
+  "ARG",
+]
+ignore = [
+  "B006",
+  "B018",
+]
+
+unfixable = [
+  "T201",
+  "T203",
+]
+ignore-init-module-imports = true
