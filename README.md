@@ -1,7 +1,7 @@
 # Welcome to Byaldi
 _Did you know? In the movie RAGatouille, the dish Remy makes is not actually a ratatouille, but a refined version of the dish called "Confit Byaldi"._
 
-<p align="center"><img width=350 alt="The Byaldi logo, it's a cheerful rat using a magnifying glass to look at a complex document. It says 'biyaldi' in the middle of a circle around the rat." src="byaldi.webp"/></p>
+<p align="center"><img width=350 alt="The Byaldi logo, it's a cheerful rat using a magnifying glass to look at a complex document. It says 'byaldi' in the middle of a circle around the rat." src="byaldi.webp"/></p>
 
 ⚠️ This is the pre-release version of Byaldi. Please report any issue you encounter, there will likely be quite a few quirks to iron out!
 
@@ -11,7 +11,7 @@ Byaldi is [RAGatouille](https://github.com/answerdotai/ragatouille)'s mini siste
 
 First, a warning: This is a pre-release library, using uncompressed indexes and lacking other kinds of refinements. The only supported model, currently, is the original PaliGemma-based ColPali checkpoints family, including `vidore/colpali` and the updated `vidore/colpali-v1.2`. Additional backends will be supported in future updates. Eventually, we'll add an HNSW indexing mechanism, pooling, and, who knows, maybe 2-bit quantization?
 
-IIt'll get updated as the multi-modal ecosystem develops further!
+It will get updated as the multi-modal ecosystem develops further!
 
 ### Pre-requisites
 
