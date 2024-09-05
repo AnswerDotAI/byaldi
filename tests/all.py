@@ -87,7 +87,7 @@ def test_add_to_index():
         input_item="docs/",
         store_collection_with_index=True,
         doc_id=[1002, 1003],
-        metadata={"author": "John Doe", "year": 2023}
+        metadata=[{"author": "John Doe", "year": 2023}] * 2
     )
     
     # Test retrieval with the updated index

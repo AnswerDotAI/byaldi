@@ -55,6 +55,7 @@ class ColPaliModel:
         self.indexed_embeddings = []
         self.embed_id_to_doc_id = {}
         self.doc_id_to_metadata = {}
+        self.doc_ids = set()
 
         # self.model = ColPali.from_pretrained(
         #     "vidore/colpaligemma-3b-pt-448-base",
@@ -133,6 +134,7 @@ class ColPaliModel:
             # Restore keys to integers
             self.embed_id_to_doc_id = {int(k): v for k, v in self.embed_id_to_doc_id.items()}
             self.highest_doc_id = max(int(entry["doc_id"]) for entry in self.embed_id_to_doc_id.values())
+            self.doc_ids = set(int(entry["doc_id"]) for entry in self.embed_id_to_doc_id.values())
 
             # Load metadata
             metadata_path = index_path / "metadata.json.gz"
@@ -298,45 +300,57 @@ class ColPaliModel:
         
     def add_to_index(
         self,
-        input_item: Union[str, Path, Image.Image],
+        input_item: Union[str, Path, Image.Image, List[Union[str, Path, Image.Image]]],
         store_collection_with_index: bool,
-        doc_id: Optional[Union[str, int]] = None,
+        doc_id: Optional[Union[int, List[int]]] = None,
         metadata: Optional[List[Dict[str, Union[str, int]]]] = None,
     ):
         if self.index_name is None:
             raise ValueError("No index loaded. Use index() to create or load an index first.")
-
         if not hasattr(self, "highest_doc_id"):
             self.highest_doc_id = -1
-
-        if doc_id is None:
-            doc_id = self.highest_doc_id + 1
-
-        if isinstance(input_item, (str, Path)):
-            input_item = Path(input_item)
-            if input_item.is_dir():
-                items = list(input_item.iterdir())
-                if metadata is not None and len(metadata) != len(items):
-                    raise ValueError(f"Number of metadata entries ({len(metadata)}) does not match number of documents ({len(items)})")
-                for i, item in enumerate(items):
-                    print(f"Indexing file: {item}")
-                    doc_metadata = metadata[i] if metadata else None
-                    self._process_and_add_to_index(item, store_collection_with_index, doc_id, doc_metadata)
-                    doc_id = int(doc_id) + 1 if isinstance(doc_id, int) else doc_id
-            else:
-                if metadata is not None and len(metadata) != 1:
-                    raise ValueError("For a single document, metadata should be a list with one dictionary")
-                doc_metadata = metadata[0] if metadata else None
-                self._process_and_add_to_index(input_item, store_collection_with_index, doc_id, doc_metadata)
-        elif isinstance(input_item, Image.Image):
-            if metadata is not None and len(metadata) != 1:
-                raise ValueError("For a single image, metadata should be a list with one dictionary")
-            doc_metadata = metadata[0] if metadata else None
-            self._process_and_add_to_index(input_item, store_collection_with_index, doc_id, doc_metadata)
+        # Convert single inputs to lists for uniform processing
+        if isinstance(input_item, (str, Path)) and Path(input_item).is_dir():
+            input_items = list(Path(input_item).iterdir())
         else:
-            raise ValueError(f"Unsupported input type: {type(input_item)}")
+            input_items = [input_item] if not isinstance(input_item, list) else input_item
+    
+        doc_ids = [doc_id] if isinstance(doc_id, int) else (doc_id if doc_id is not None else None)
+
+        # Validate input lengths
+        if doc_ids and len(doc_ids) != len(input_items):
+            raise ValueError(f"Number of doc_ids ({len(doc_ids)}) does not match number of input items ({len(input_items)})")
+        if metadata and len(metadata) != len(input_items):
+            raise ValueError(f"Number of metadata entries ({len(metadata)}) does not match number of input items ({len(input_items)})")
+
+        # Process each input item
+        for i, item in enumerate(input_items):
+            current_doc_id = doc_ids[i] if doc_ids else self.highest_doc_id + 1 + i
+            current_metadata = metadata[i] if metadata else None
+
+            if current_doc_id in self.doc_ids:
+                raise ValueError(f"Document ID {current_doc_id} already exists in the index")
+
+            self.highest_doc_id = max(self.highest_doc_id, current_doc_id)
+
+            if isinstance(item, (str, Path)):
+                item_path = Path(item)
+                if item_path.is_dir():
+                    self._process_directory(item_path, store_collection_with_index, current_doc_id, current_metadata)
+                else:
+                    self._process_and_add_to_index(item_path, store_collection_with_index, current_doc_id, current_metadata)
+            elif isinstance(item, Image.Image):
+                self._process_and_add_to_index(item, store_collection_with_index, current_doc_id, current_metadata)
+            else:
+                raise ValueError(f"Unsupported input type: {type(item)}")
 
         self._export_index()
+
+    def _process_directory(self, directory: Path, store_collection_with_index: bool, base_doc_id: int, metadata: Optional[Dict[str, Union[str, int]]]):
+        for i, item in enumerate(directory.iterdir()):
+            print(f"Indexing file: {item}")
+            current_doc_id = base_doc_id + i
+            self._process_and_add_to_index(item, store_collection_with_index, current_doc_id, metadata)
 
     def _process_and_add_to_index(
         self,
