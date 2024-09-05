@@ -241,6 +241,7 @@ class ColPaliModel:
         if (
             self.index_name is not None
             and (index_name is None or self.index_name == index_name)
+            and not overwrite
         ):
             print(
                 f"An index named {self.index_name} is already loaded.",
@@ -284,7 +285,7 @@ class ColPaliModel:
             for i, item in enumerate(items):
                 print(f"Indexing file: {item}")
                 doc_id = doc_ids[i] if doc_ids else self.highest_doc_id + 1
-                doc_metadata = metadata[i] if metadata else None
+                doc_metadata = metadata[doc_id] if metadata else None
                 self.add_to_index(item, store_collection_with_index, doc_id=doc_id, metadata=doc_metadata)
         else:
             if metadata is not None and len(metadata) != 1:
