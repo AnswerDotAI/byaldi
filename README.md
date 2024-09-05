@@ -97,7 +97,7 @@ The main decision you'll have to make here is whether you want to set `store_col
 Once you've created or loaded an index, you can start searching for relevant documents. Again, it's a single, very straightforward command:
 
 ```python3
-results = model.search(query, k=3)
+results = RAG.search(query, k=3)
 ```
 
 Results will be a list of `Result` objects, which you can also treat as normal dictionaries. Each result will be in this format:
@@ -123,7 +123,7 @@ If you've passed metadata or encoded with the flag to store the base64 versions,
 Since indexes are in-memory, they're addition-friendly! If you need to ingest some new pdfs, just load your index with `from_index`, and then, call `add_to_index`, with similar parameters to the original `index()` method:
 
 ```python3
-add_to_index("path_to_new_docs",
+RAG.add_to_index("path_to_new_docs",
         store_collection_with_index: bool = False,
         ...
     )
