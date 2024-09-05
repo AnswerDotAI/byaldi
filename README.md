@@ -71,7 +71,7 @@ RAG = RAGMultiModalModel.from_index("your_index_name")
 ```
 
 ### Creating an index
-Creating an index with `byaldi` is simple and flexible. You can index a single PDF file, a single image file, or a directory containing multiple of those. Here's how to create an index:
+Creating an index with `byaldi` is simple and flexible. **You can index a single PDF file, a single image file, or a directory containing multiple of those**. Here's how to create an index:
 
 ```python3
 from byaldi import RAGMultiModalModel
