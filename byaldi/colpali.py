@@ -17,6 +17,9 @@ from colpali_engine.utils.colpali_processing_utils import (
 )
 from byaldi.objects import Result
 from .utils import capture_print
+# Import version directly from the package metadata
+from importlib.metadata import version
+VERSION = version("Byaldi")
 
 
 MOCK_IMAGE = Image.new("RGB", (448, 448), (255, 255, 255))
@@ -55,6 +58,7 @@ class ColPaliModel:
         self.indexed_embeddings = []
         self.embed_id_to_doc_id = {}
         self.doc_id_to_metadata = {}
+        self.doc_ids_to_file_names = {}
         self.doc_ids = set()
 
         # self.model = ColPali.from_pretrained(
@@ -135,6 +139,11 @@ class ColPaliModel:
             self.embed_id_to_doc_id = {int(k): v for k, v in self.embed_id_to_doc_id.items()}
             self.highest_doc_id = max(int(entry["doc_id"]) for entry in self.embed_id_to_doc_id.values())
             self.doc_ids = set(int(entry["doc_id"]) for entry in self.embed_id_to_doc_id.values())
+            try:
+                # We don't want this error out with indexes created prior to 0.0.2
+                self.doc_ids_to_file_names = srsly.read_gzip_json(index_path / "doc_ids_to_file_names.json.gz")
+            except FileNotFoundError:
+                pass
 
             # Load metadata
             metadata_path = index_path / "metadata.json.gz"
@@ -211,11 +220,15 @@ class ColPaliModel:
             "model_name": self.model_name,
             "full_document_collection": self.full_document_collection,
             "highest_doc_id": self.highest_doc_id,
+            "library_version": VERSION,
         }
         srsly.write_gzip_json(index_path / "index_config.json.gz", index_config)
 
         # Save embed_id_to_doc_id mapping
         srsly.write_gzip_json(index_path / "embed_id_to_doc_id.json.gz", self.embed_id_to_doc_id)
+
+        # Save doc_ids_to_file_names
+        srsly.write_gzip_json(index_path / "doc_ids_to_file_names.json.gz", self.doc_ids_to_file_names)
 
         # Save metadata
         srsly.write_gzip_json(index_path / "metadata.json.gz", self.doc_id_to_metadata)
@@ -239,7 +252,7 @@ class ColPaliModel:
         store_collection_with_index: bool = False,
         overwrite: bool = False,
         metadata: Optional[List[Dict[str, Union[str, int]]]] = None,
-    ):
+    ) -> Dict[int, str]:
         if (
             self.index_name is not None
             and (index_name is None or self.index_name == index_name)
@@ -289,14 +302,17 @@ class ColPaliModel:
                 doc_id = doc_ids[i] if doc_ids else self.highest_doc_id + 1
                 doc_metadata = metadata[doc_id] if metadata else None
                 self.add_to_index(item, store_collection_with_index, doc_id=doc_id, metadata=doc_metadata)
+                self.doc_ids_to_file_names[doc_id] = str(item)
         else:
             if metadata is not None and len(metadata) != 1:
                 raise ValueError("For a single document, metadata should be a list with one dictionary")
             doc_id = doc_ids[0] if doc_ids else self.highest_doc_id + 1
             doc_metadata = metadata[0] if metadata else None
             self.add_to_index(input_path, store_collection_with_index, doc_id=doc_id, metadata=doc_metadata)
+            self.doc_ids_to_file_names[doc_id] = str(input_path)
 
         self._export_index()
+        return self.doc_ids_to_file_names
         
     def add_to_index(
         self,
@@ -304,7 +320,7 @@ class ColPaliModel:
         store_collection_with_index: bool,
         doc_id: Optional[Union[int, List[int]]] = None,
         metadata: Optional[List[Dict[str, Union[str, int]]]] = None,
-    ):
+    ) -> Dict[int, str]:
         if self.index_name is None:
             raise ValueError("No index loaded. Use index() to create or load an index first.")
         if not hasattr(self, "highest_doc_id"):
@@ -339,18 +355,22 @@ class ColPaliModel:
                     self._process_directory(item_path, store_collection_with_index, current_doc_id, current_metadata)
                 else:
                     self._process_and_add_to_index(item_path, store_collection_with_index, current_doc_id, current_metadata)
+                self.doc_ids_to_file_names[current_doc_id] = str(item_path)
             elif isinstance(item, Image.Image):
                 self._process_and_add_to_index(item, store_collection_with_index, current_doc_id, current_metadata)
+                self.doc_ids_to_file_names[current_doc_id] = "In-memory Image"
             else:
                 raise ValueError(f"Unsupported input type: {type(item)}")
 
         self._export_index()
+        return self.doc_ids_to_file_names
 
     def _process_directory(self, directory: Path, store_collection_with_index: bool, base_doc_id: int, metadata: Optional[Dict[str, Union[str, int]]]):
         for i, item in enumerate(directory.iterdir()):
             print(f"Indexing file: {item}")
             current_doc_id = base_doc_id + i
             self._process_and_add_to_index(item, store_collection_with_index, current_doc_id, metadata)
+            self.doc_ids_to_file_names[current_doc_id] = str(item)
 
     def _process_and_add_to_index(
         self,
