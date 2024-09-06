@@ -142,6 +142,7 @@ class ColPaliModel:
             try:
                 # We don't want this error out with indexes created prior to 0.0.2
                 self.doc_ids_to_file_names = srsly.read_gzip_json(index_path / "doc_ids_to_file_names.json.gz")
+                self.doc_ids_to_file_names = {int(k): v for k, v in self.doc_ids_to_file_names.items()}
             except FileNotFoundError:
                 pass
 
@@ -563,3 +564,6 @@ class ColPaliModel:
             embeddings = self.model(**batch)
 
         return embeddings.cpu()
+
+    def get_doc_ids_to_file_names(self):
+        return self.doc_ids_to_file_names
