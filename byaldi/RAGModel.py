@@ -106,7 +106,7 @@ class RAGMultiModalModel:
         Returns:
             None
         """
-        self.model.index(
+        return self.model.index(
             input_path,
             index_name,
             doc_ids,
@@ -133,7 +133,7 @@ class RAGMultiModalModel:
         Returns:
             None
         """
-        self.model.add_to_index(
+        return self.model.add_to_index(
             input_item, store_collection_with_index, doc_id, metadata=metadata
         )
 
@@ -154,3 +154,6 @@ class RAGMultiModalModel:
             Union[List[Result], List[List[Result]]]: A list of Result objects or a list of lists of Result objects.
         """
         return self.model.search(query, k, return_base64_results)
+
+    def get_doc_ids_to_file_names(self):
+        return self.model.get_doc_ids_to_file_names()
