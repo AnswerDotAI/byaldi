@@ -37,6 +37,7 @@ class RAGMultiModalModel:
         cls,
         pretrained_model_name_or_path: Union[str, Path],
         device: str = "cuda",
+        verbose: int = 1,
     ):
         """Load a ColPali model from a pre-trained checkpoint.
 
@@ -49,7 +50,7 @@ class RAGMultiModalModel:
         """
         instance = cls()
         instance.model = ColPaliModel.from_pretrained(
-            pretrained_model_name_or_path, device=device
+            pretrained_model_name_or_path, device=device, verbose=verbose
         )
         return instance
 
@@ -59,6 +60,7 @@ class RAGMultiModalModel:
         index_path: Union[str, Path],
         index_root: str = ".byaldi",
         device: str = "cuda",
+        verbose: int = 1,
     ):
         """Load an Index and the associated ColPali model from an existing document index.
 
@@ -72,7 +74,7 @@ class RAGMultiModalModel:
         instance = cls()
         index_path = Path(index_path)
         instance.model = ColPaliModel.from_index(
-            index_path, index_root=index_root, device=device
+            index_path, index_root=index_root, device=device, verbose=verbose
         )
 
         return instance
