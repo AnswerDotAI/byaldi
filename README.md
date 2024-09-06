@@ -86,10 +86,13 @@ RAG.index(
     overwrite=True # Whether to overwrite an index if it already exists. If False, it'll return None and do nothing if `index_root/index_name` exists.
 )
 ```
-
 And that's it! The model will start spinning and create your index, exporting all the necessary information to disk when it's done. You can then use the `RAGMultiModalModel.from_index("your_index_name")` method presented above to load it whenever needed (you don't need to do this right after creating it -- it's already loaded in memory and ready to go!).
 
-The main decision you'll have to make here is whether you want to set `store_collection_with_index` to True or not. If set to true, it greatly simplifies your workflow: the base64-encoded version of relevant documents will be returned as part of the query results, so you can immediately pipe it to your LLM. However, it adds considerable memory and storage requirements to your index, so you might want to set it to False (the default setting) if you're short on those resources, and create the base64 encoded versions yourself whenever needed.
+The main decision you'll have to make here is whether you want to set `store_collection_with_index` to True or not. If set to true, it greatly simplifies your workflow: the base64-encoded version of relevant documents will be returned as part of the query results, so you can immediately pipe it to your LLM.
+
+However, it adds considerable memory and storage requirements to your index, so you might want to set it to False (the default setting) if you're short on those resources, and create the base64 encoded versions yourself whenever needed.
+
+Finally, `RAG.index()` currently does not support meta-data or user-enforced doc_ids when encoding whole folders at once. A fix is on the way for this! To ensure you can still accurately map document ids (auto-generated integers) to your documents, every indexing command will return a dictionary in the format `{doc_id: file_name}`, which you can also get by calling `RAG.get_doc_ids_to_file_names()`
 
 
 ### Searching
