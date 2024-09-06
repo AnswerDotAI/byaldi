@@ -25,7 +25,6 @@ maintainers = [
 dependencies = [
 "transformers",
 "torch",
-"ml-dtypes",
 "ninja",
 "pdf2image",
 "srsly",
