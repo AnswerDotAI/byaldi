@@ -29,7 +29,7 @@ dependencies = [
 "ninja",
 "pdf2image",
 "srsly",
-"colpali-engine==0.2.1",
+"colpali-engine==0.2.2",
 "mteb==1.6.35",
 ]
 
