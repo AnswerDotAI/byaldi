@@ -41,7 +41,7 @@ Gemma uses a recent version of flash attention. To make things run as smoothly a
 
 ```bash
 pip install --upgrade byaldi
-pip install flash-attn
+pip install flash-attn==1.0.5
 ```
 
 
