@@ -1,5 +1,6 @@
-from io import StringIO
 import sys
+from io import StringIO
+
 
 def capture_print(func):
     def wrapper(*args, **kwargs):
@@ -10,4 +11,5 @@ def capture_print(func):
         finally:
             sys.stdout = original_stdout
         return result
+
     return wrapper
