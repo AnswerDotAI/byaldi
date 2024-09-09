@@ -282,7 +282,7 @@ class ColPaliModel:
             if overwrite is False:
                 raise ValueError(f"An index named {index_name} already exists.", 
                                  "Use overwrite=True to delete the existing index and build a new one.",
-                                 "Exiting indexing without doing anything...")
+                                 "Otherwise, use RAGMultiModalModel.from_index() to load the existing index.")
                 return None
             else:
                 print(f"overwrite is on. Deleting existing index {index_name} to build a new one.")
