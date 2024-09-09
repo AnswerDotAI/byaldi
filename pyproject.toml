@@ -1,51 +1,51 @@
 [build-system]
-requires = ["setuptools"] 
-build-backend = "setuptools.build_meta" 
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = [
-    "byaldi"
-]
+packages = ["byaldi"]
 
 [project]
-name = "Byaldi" 
-version = "0.0.2post2"
-description = "Use late-interaction multi-modal models such as ColPALI in just a few lines of code."
+name = "Byaldi"
+version = "0.0.4.dev0"
+description = "Use late-interaction multi-modal models such as ColPali in just a few lines of code."
 readme = "README.md"
 requires-python = ">=3.8"
-license = {file = "LICENSE"}
-keywords = ["reranking", "retrieval", "rag", "nlp", "colpali", "colbert", "multi-modal"]
-authors = [
-  {name = "Ben Clavié", email = "bc@answer.ai" }
+license = { file = "LICENSE" }
+keywords = [
+    "reranking",
+    "retrieval",
+    "rag",
+    "nlp",
+    "colpali",
+    "colbert",
+    "multi-modal",
 ]
+authors = [{ name = "Ben Clavié", email = "bc@answer.ai" }]
 maintainers = [
-  {name = "Ben Clavié", email = "bc@answer.ai" }
+    { name = "Ben Clavié", email = "bc@answer.ai" },
+    { name = "Tony Wu", email = "tony.wu@illuin.tech" },
 ]
 
 dependencies = [
-"transformers",
-"torch",
-"ninja",
-"pdf2image",
-"srsly",
-"colpali-engine==0.2.2",
-"mteb==1.6.35",
+    "colpali-engine==0.2.2",
+    "ml-dtypes",
+    "mteb==1.6.35",
+    "ninja",
+    "pdf2image",
+    "srsly",
+    "torch",
+    "transformers",
 ]
-
 
 [project.optional-dependencies]
-server = [
-    "uvicorn",
-    "fastapi"
-]
+server = ["uvicorn", "fastapi"]
 
 [project.urls]
 "Homepage" = "https://github.com/answerdotai/byaldi"
 
 [tool.pytest.ini_options]
-filterwarnings = [
-    "ignore::Warning"
-]
+filterwarnings = ["ignore::Warning"]
 
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.
@@ -83,23 +83,17 @@ target-version = "py39"
 
 [tool.ruff.lint]
 select = [
-  # bugbear rules
-  "B",
-  "I",
-  # remove unused imports
-  "F401",
-  # bare except statements
-  "E722",
-  # unused arguments
-  "ARG",
+    # bugbear rules
+    "B",
+    "I",
+    # remove unused imports
+    "F401",
+    # bare except statements
+    "E722",
+    # unused arguments
+    "ARG",
 ]
-ignore = [
-  "B006",
-  "B018",
-]
+ignore = ["B006", "B018"]
 
-unfixable = [
-  "T201",
-  "T203",
-]
+unfixable = ["T201", "T203"]
 ignore-init-module-imports = true
