@@ -265,7 +265,7 @@ class ColPaliModel:
             and (index_name is None or self.index_name == index_name)
             and not overwrite
         ):
-            print(
+            raise ValueError(
                 f"An index named {self.index_name} is already loaded.",
                 "Use add_to_index() to add to it or search() to query it.",
                 "Pass a new index_name to create a new index.",
@@ -280,9 +280,9 @@ class ColPaliModel:
         index_path = Path(self.index_root) / Path(index_name)
         if index_path.exists():
             if overwrite is False:
-                print(f"An index named {index_name} already exists.")
-                print("Use overwrite=True to delete the existing index and build a new one.")
-                print("Exiting indexing without doing anything...")
+                raise ValueError(f"An index named {index_name} already exists.", 
+                                 "Use overwrite=True to delete the existing index and build a new one.",
+                                 "Exiting indexing without doing anything...")
                 return None
             else:
                 print(f"overwrite is on. Deleting existing index {index_name} to build a new one.")
