@@ -293,7 +293,7 @@ class ColPaliModel:
         self.max_image_height = max_image_height
 
         input_path = Path(input_path)
-        if not hasattr(self, "highest_doc_id"):
+        if not hasattr(self, "highest_doc_id") or overwrite is True:
             self.highest_doc_id = -1
 
         if input_path.is_dir():
