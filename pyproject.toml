@@ -10,7 +10,7 @@ name = "Byaldi"
 version = "0.0.4.dev0"
 description = "Use late-interaction multi-modal models such as ColPali in just a few lines of code."
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 license = { file = "LICENSE" }
 keywords = [
     "reranking",
