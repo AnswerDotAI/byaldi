@@ -43,7 +43,7 @@ class ColPaliModel:
             )
 
         if verbose > 0:
-            print(f"Verbosity is set to {verbose} (active). Pass verbose=0 to make quieter.")
+            print(f"Verbosity is set to {verbose} ({'active' if verbose == 1 else 'loud'}). Pass verbose=0 to make quieter.")
 
         self.pretrained_model_name_or_path = pretrained_model_name_or_path
         self.model_name = self.pretrained_model_name_or_path
@@ -107,6 +107,9 @@ class ColPaliModel:
             self.full_document_collection = index_config.get(
                 "full_document_collection", False
             )
+            self.resize_stored_images = index_config.get("resize_stored_images", False)
+            self.max_image_width = index_config.get("max_image_width", None)
+            self.max_image_height = index_config.get("max_image_height", None)
             if self.full_document_collection:
                 collection_path = index_path / "collection"
                 json_files = sorted(
@@ -184,7 +187,6 @@ class ColPaliModel:
     ):
         index_path = Path(index_root) /  Path(index_path)
         index_config = srsly.read_gzip_json(index_path / "index_config.json.gz")
-        print(index_config)
 
         instance = cls(
             pretrained_model_name_or_path=index_config["model_name"],
@@ -220,6 +222,9 @@ class ColPaliModel:
             "model_name": self.model_name,
             "full_document_collection": self.full_document_collection,
             "highest_doc_id": self.highest_doc_id,
+            "resize_stored_images": True if self.max_image_width and self.max_image_height else False,
+            "max_image_width": self.max_image_width,
+            "max_image_height": self.max_image_height,
             "library_version": VERSION,
         }
         srsly.write_gzip_json(index_path / "index_config.json.gz", index_config)
@@ -252,6 +257,8 @@ class ColPaliModel:
         store_collection_with_index: bool = False,
         overwrite: bool = False,
         metadata: Optional[List[Dict[str, Union[str, int]]]] = None,
+        max_image_width: Optional[int] = None,
+        max_image_height: Optional[int] = None,
     ) -> Dict[int, str]:
         if (
             self.index_name is not None
@@ -282,6 +289,8 @@ class ColPaliModel:
                 shutil.rmtree(index_path)
         
         self.index_name = index_name
+        self.max_image_width = max_image_width
+        self.max_image_height = max_image_height
 
         input_path = Path(input_path)
         if not hasattr(self, "highest_doc_id"):
@@ -424,6 +433,25 @@ class ColPaliModel:
         if store_collection_with_index:
             import base64
             import io
+
+            # Resize image while maintaining aspect ratio
+            if self.max_image_width and self.max_image_height:
+                img_width, img_height = image.size
+                aspect_ratio = img_width / img_height
+                if img_width > self.max_image_width:
+                    new_width = self.max_image_width
+                    new_height = int(new_width / aspect_ratio)
+                else:
+                    new_width = img_width
+                    new_height = img_height
+                if new_height > self.max_image_height:
+                    new_height = self.max_image_height
+                    new_width = int(new_height * aspect_ratio)
+                if self.verbose > 2:
+                    print(f"Resizing image to {new_width}x{new_height}" ,
+                          f"(aspect ratio {aspect_ratio:.2f}, original size {img_width}x{img_height},"
+                          f"compression {new_width/img_width * new_height/img_height:.2f})")
+                image = image.resize((new_width, new_height), Image.LANCZOS)
 
             buffered = io.BytesIO()
             image.save(buffered, format="PNG")

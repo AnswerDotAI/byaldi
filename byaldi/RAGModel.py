@@ -92,6 +92,9 @@ class RAGMultiModalModel:
                 List[Dict[str, Union[str, int]]],
             ]
         ] = None,
+        max_image_width: Optional[int] = None,
+        max_image_height: Optional[int] = None,
+        **kwargs,
     ):
         """Build an index from input documents.
 
@@ -115,6 +118,9 @@ class RAGMultiModalModel:
             store_collection_with_index,
             overwrite=overwrite,
             metadata=metadata,
+            max_image_width=max_image_width,
+            max_image_height=max_image_height,
+            **kwargs,
         )
 
     def add_to_index(
