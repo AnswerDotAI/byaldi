@@ -39,6 +39,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+dev = ["pytest>=7.4.0", "ruff>=0.1.9"]
 server = ["uvicorn", "fastapi"]
 
 [project.urls]
