@@ -51,7 +51,7 @@ ColPali uses multi-billion parameter models to encode documents. We recommend us
 
 ## Using `byaldi`
 
-Byaldi is largely modeled after RAGatouille, meaning that everything is designed to take the fewest amount of code possible, so you can very quickly build on top of it rather than spending time figuring out how to create a retrieval pipeline.
+Byaldi is largely modeled after RAGatouille, meaning that everything is designed to take the fewest lines of code possible, so you can very quickly build on top of it rather than spending time figuring out how to create a retrieval pipeline.
 
 ### Loading a model
 
