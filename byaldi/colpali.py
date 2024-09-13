@@ -165,6 +165,7 @@ class ColPaliModel:
         n_gpu: int = -1,
         verbose: int = 1,
         device: Optional[Union[str, torch.device]] = None,
+        index_root: str = ".byaldi",
         **kwargs,
     ):
         return cls(
@@ -172,6 +173,7 @@ class ColPaliModel:
             n_gpu=n_gpu,
             verbose=verbose,
             load_from_index=False,
+            index_root=index_root,
             device=device,
             **kwargs,
         )
