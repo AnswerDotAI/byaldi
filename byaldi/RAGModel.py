@@ -36,6 +36,7 @@ class RAGMultiModalModel:
     def from_pretrained(
         cls,
         pretrained_model_name_or_path: Union[str, Path],
+        index_root: str = ".byaldi",
         device: str = "cuda",
         verbose: int = 1,
     ):
@@ -50,7 +51,7 @@ class RAGMultiModalModel:
         """
         instance = cls()
         instance.model = ColPaliModel.from_pretrained(
-            pretrained_model_name_or_path, device=device, verbose=verbose
+            pretrained_model_name_or_path, index_root=index_root, device=device, verbose=verbose
         )
         return instance
 
