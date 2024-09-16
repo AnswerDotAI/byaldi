@@ -2,7 +2,14 @@ from typing import Optional
 
 
 class Result:
-    def __init__(self, doc_id: str, page_num: int, score: float, metadata: Optional[dict] = None, base64: Optional[str] = None):
+    def __init__(
+        self,
+        doc_id: str,
+        page_num: int,
+        score: float,
+        metadata: Optional[dict] = None,
+        base64: Optional[str] = None,
+    ):
         self.doc_id = doc_id
         self.page_num = page_num
         self.score = score

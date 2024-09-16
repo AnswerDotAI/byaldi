@@ -1,6 +1,5 @@
 from pathlib import Path
-from typing import Any, List, Optional, Union, Dict
-from uuid import uuid4
+from typing import Dict, List, Optional, Union
 
 from PIL import Image
 
