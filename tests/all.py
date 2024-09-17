@@ -1,11 +1,16 @@
+from colpali_engine.utils.torch_utils import get_torch_device
+
 from byaldi import RAGMultiModalModel
+
+device = get_torch_device("auto")
+print(f"Using device: {device}")
 
 
 def test_single_pdf():
     print("Testing single PDF indexing and retrieval...")
 
     # Initialize the model
-    model = RAGMultiModalModel.from_pretrained("vidore/colpali")
+    model = RAGMultiModalModel.from_pretrained("vidore/colpali-v1.2", device=device)
 
     # Index a single PDF
     model.index(
