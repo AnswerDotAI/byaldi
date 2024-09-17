@@ -47,6 +47,8 @@ server = ["uvicorn", "fastapi"]
 
 [tool.pytest.ini_options]
 filterwarnings = ["ignore::Warning"]
+markers = ["slow: marks test as slow"]
+testpaths = ["tests"]
 
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.
