@@ -28,7 +28,7 @@ maintainers = [
 ]
 
 dependencies = [
-    "colpali-engine==0.2.2",
+    "colpali-engine>=0.3.0,<0.4.0",
     "ml-dtypes",
     "mteb==1.6.35",
     "ninja",
