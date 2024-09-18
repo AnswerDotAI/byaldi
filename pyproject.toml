@@ -36,6 +36,7 @@ dependencies = [
     "srsly",
     "torch",
     "transformers",
+    "langchain-core",
 ]
 
 [project.optional-dependencies]
