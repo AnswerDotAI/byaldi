@@ -675,7 +675,8 @@ class ColPaliModel:
                     with tempfile.TemporaryDirectory() as path:
                         pdf_images = convert_from_path(
                             item,
-                            thread_count=os.cpu_count()-1, output_folder=path
+                            thread_count=os.cpu_count()-1,
+                            output_folder=path
                         )
                         images.extend(pdf_images)
                 elif item.lower().endswith(
