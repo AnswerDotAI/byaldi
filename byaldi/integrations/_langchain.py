@@ -5,6 +5,7 @@ from langchain_core.retrievers import BaseRetriever
 
 from byaldi.objects import Result
 
+
 class ByaldiLangChainRetriever(BaseRetriever):
     model: Any
     kwargs: dict = {}

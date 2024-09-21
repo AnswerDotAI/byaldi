@@ -2,7 +2,6 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 from langchain_core.retrievers import BaseRetriever
-
 from PIL import Image
 
 from byaldi.colpali import ColPaliModel
