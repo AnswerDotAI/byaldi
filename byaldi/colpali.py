@@ -1,5 +1,6 @@
 import os
 import shutil
+import tempfile
 from importlib.metadata import version
 from pathlib import Path
 from typing import Dict, List, Optional, Union, cast
@@ -464,15 +465,22 @@ class ColPaliModel:
         """TODO: THERE ARE TOO MANY FUNCTIONS DOING THINGS HERE. I blame Claude, but this is temporary anyway."""
         if isinstance(item, Path):
             if item.suffix.lower() == ".pdf":
-                images = convert_from_path(item)
-                for i, image in enumerate(images):
-                    self._add_to_index(
-                        image,
-                        store_collection_with_index,
-                        doc_id,
-                        page_id=i + 1,
-                        metadata=metadata,
+                with tempfile.TemporaryDirectory() as path:
+                    images = convert_from_path(
+                        item,
+                        thread_count=os.cpu_count()-1,
+                        output_folder=path,
+                        paths_only=True
                     )
+                    for i, image_path in enumerate(images):
+                        image = Image.open(image_path)
+                        self._add_to_index(
+                            image,
+                            store_collection_with_index,
+                            doc_id,
+                            page_id=i + 1,
+                            metadata=metadata,
+                        )
             elif item.suffix.lower() in [".jpg", ".jpeg", ".png", ".bmp"]:
                 image = Image.open(item)
                 self._add_to_index(
@@ -645,8 +653,13 @@ class ColPaliModel:
                             images.append(Image.open(os.path.join(item, file)))
                 elif item.lower().endswith(".pdf"):
                     # Process PDF
-                    pdf_images = convert_from_path(item)
-                    images.extend(pdf_images)
+                    with tempfile.TemporaryDirectory() as path:
+                        pdf_images = convert_from_path(
+                            item,
+                            thread_count=os.cpu_count()-1,
+                            output_folder=path
+                        )
+                        images.extend(pdf_images)
                 elif item.lower().endswith(
                     (".png", ".jpg", ".jpeg", ".tiff", ".bmp", ".gif")
                 ):
