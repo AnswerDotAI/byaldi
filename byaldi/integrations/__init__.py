@@ -1,3 +1,8 @@
-from byaldi.integrations._langchain import ByaldiLangChainRetriever
+_all__ = []
 
-__all__ = ["ByaldiLangChainRetriever"]
+try:
+    from byaldi.integrations._langchain import ByaldiLangChainRetriever
+
+    _all__.append("ByaldiLangChainRetriever")
+except ImportError:
+    pass

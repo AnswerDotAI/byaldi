@@ -1,12 +1,17 @@
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from langchain_core.retrievers import BaseRetriever
 from PIL import Image
 
 from byaldi.colpali import ColPaliModel
-from byaldi.integrations import ByaldiLangChainRetriever
+
 from byaldi.objects import Result
+
+# Optional langchain integration
+try:
+    from byaldi.integrations import ByaldiLangChainRetriever
+except ImportError:
+    pass
 
 
 class RAGMultiModalModel:
@@ -52,7 +57,10 @@ class RAGMultiModalModel:
         """
         instance = cls()
         instance.model = ColPaliModel.from_pretrained(
-            pretrained_model_name_or_path, index_root=index_root, device=device, verbose=verbose
+            pretrained_model_name_or_path,
+            index_root=index_root,
+            device=device,
+            verbose=verbose,
         )
         return instance
 
@@ -168,5 +176,5 @@ class RAGMultiModalModel:
     def get_doc_ids_to_file_names(self):
         return self.model.get_doc_ids_to_file_names()
 
-    def as_langchain_retriever(self, **kwargs: Any) -> BaseRetriever:
+    def as_langchain_retriever(self, **kwargs: Any):
         return ByaldiLangChainRetriever(model=self, kwargs=kwargs)

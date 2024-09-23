@@ -36,12 +36,12 @@ dependencies = [
     "srsly",
     "torch",
     "transformers",
-    "langchain-core",
 ]
 
 [project.optional-dependencies]
 dev = ["pytest>=7.4.0", "ruff>=0.1.9"]
 server = ["uvicorn", "fastapi"]
+langchain = ["langchain-core"]
 
 [project.urls]
 "Homepage" = "https://github.com/answerdotai/byaldi"
