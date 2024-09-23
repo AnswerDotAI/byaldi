@@ -1,32 +1,20 @@
 import os
 import shutil
 import tempfile
-
-# Import version directly from the package metadata
 from importlib.metadata import version
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, cast
 
 import srsly
 import torch
-from colpali_engine.models.paligemma_colbert_architecture import ColPali
-from colpali_engine.trainer.retrieval_evaluator import CustomEvaluator
-from colpali_engine.utils.colpali_processing_utils import (
-    process_images,
-    process_queries,
-)
+from colpali_engine.models import ColPali, ColPaliProcessor
 from pdf2image import convert_from_path
 from PIL import Image
-from transformers import AutoProcessor
 
 from byaldi.objects import Result
 
-from .utils import capture_print
-
+# Import version directly from the package metadata
 VERSION = version("Byaldi")
-
-
-MOCK_IMAGE = Image.new("RGB", (448, 448), (255, 255, 255))
 
 
 class ColPaliModel:
@@ -41,6 +29,9 @@ class ColPaliModel:
         device: Optional[Union[str, torch.device]] = None,
         **kwargs,
     ):
+        if isinstance(pretrained_model_name_or_path, Path):
+            pretrained_model_name_or_path = str(pretrained_model_name_or_path)
+
         if "colpali" not in pretrained_model_name_or_path.lower():
             raise ValueError(
                 "This pre-release version of Byaldi only supports ColPali for now. Incorrect model name specified."
@@ -73,35 +64,27 @@ class ColPaliModel:
         self.doc_ids_to_file_names = {}
         self.doc_ids = set()
 
-        # self.model = ColPali.from_pretrained(
-        #     "vidore/colpaligemma-3b-pt-448-base",
-        #     torch_dtype=torch.bfloat16,
-        #     device_map="cuda"
-        #     if device == "cuda"
-        #     or (isinstance(device, torch.device) and device.type == "cuda")
-        #     else None,
-        #     token=kwargs.get("hf_token", None) or os.environ.get("HF_TOKEN"),
-        # )
-
-        # if verbose > 0:
-        #     print("Loading adapter...")
-        #     print("Adapter name: ", self.pretrained_model_name_or_path)
-        # self.model.load_adapter(self.pretrained_model_name_or_path)
-
         self.model = ColPali.from_pretrained(
             self.pretrained_model_name_or_path,
             torch_dtype=torch.bfloat16,
-            device_map="cuda"
-            if device == "cuda"
-            or (isinstance(device, torch.device) and device.type == "cuda")
-            else None,
+            device_map=(
+                "cuda"
+                if device == "cuda"
+                or (isinstance(device, torch.device) and device.type == "cuda")
+                else None
+            ),
             token=kwargs.get("hf_token", None) or os.environ.get("HF_TOKEN"),
         )
         self.model = self.model.eval()
-        self.processor = AutoProcessor.from_pretrained(
-            self.pretrained_model_name_or_path,
-            token=kwargs.get("hf_token", None) or os.environ.get("HF_TOKEN"),
+
+        self.processor = cast(
+            ColPaliProcessor,
+            ColPaliProcessor.from_pretrained(
+                self.pretrained_model_name_or_path,
+                token=kwargs.get("hf_token", None) or os.environ.get("HF_TOKEN"),
+            ),
         )
+
         self.device = device
         if device != "cuda" and not (
             isinstance(device, torch.device) and device.type == "cuda"
@@ -112,7 +95,10 @@ class ColPaliModel:
             self.full_document_collection = False
             self.highest_doc_id = -1
         else:
-            index_path = Path(index_root) / Path(index_name)
+            if self.index_name is None:
+                raise ValueError("No index name specified. Cannot load from index.")
+
+            index_path = Path(index_root) / Path(self.index_name)
             index_config = srsly.read_gzip_json(index_path / "index_config.json.gz")
             self.full_document_collection = index_config.get(
                 "full_document_collection", False
@@ -120,6 +106,7 @@ class ColPaliModel:
             self.resize_stored_images = index_config.get("resize_stored_images", False)
             self.max_image_width = index_config.get("max_image_width", None)
             self.max_image_height = index_config.get("max_image_height", None)
+
             if self.full_document_collection:
                 collection_path = index_path / "collection"
                 json_files = sorted(
@@ -524,7 +511,7 @@ class ColPaliModel:
                 f"Document ID {doc_id} with page ID {page_id} already exists in the index"
             )
 
-        processed_image = process_images(self.processor, [image])
+        processed_image = self.processor.process_images([image])
 
         # Generate embedding
         with torch.no_grad():
@@ -583,12 +570,6 @@ class ColPaliModel:
     def remove_from_index(self):
         raise NotImplementedError("This method is not implemented yet.")
 
-    @capture_print
-    def _score(self, qs: torch.Tensor):
-        retriever_evaluator = CustomEvaluator(is_multi_vector=True)
-        scores = retriever_evaluator.evaluate(qs, self.indexed_embeddings)
-        return scores
-
     def search(
         self,
         query: Union[str, List[str]],
@@ -612,13 +593,13 @@ class ColPaliModel:
         for q in queries:
             # Process query
             with torch.no_grad():
-                batch_query = process_queries(self.processor, [q], MOCK_IMAGE)
+                batch_query = self.processor.process_queries([q])
                 batch_query = {k: v.to(self.device) for k, v in batch_query.items()}
                 embeddings_query = self.model(**batch_query)
             qs = list(torch.unbind(embeddings_query.to("cpu")))
 
             # Compute scores
-            scores = self._score(qs)
+            scores = self.processor.score(qs, self.indexed_embeddings).cpu().numpy()
 
             # Get top k relevant pages
             top_pages = scores.argsort(axis=1)[0][-k:][::-1].tolist()
@@ -690,7 +671,7 @@ class ColPaliModel:
                 raise ValueError(f"Unsupported input type: {type(item)}")
 
         with torch.no_grad():
-            batch = process_images(self.processor, images)
+            batch = self.processor.process_images(images)
             batch = {k: v.to(self.device) for k, v in batch.items()}
             embeddings = self.model(**batch)
 
@@ -711,7 +692,7 @@ class ColPaliModel:
             query = [query]
 
         with torch.no_grad():
-            batch = process_queries(self.processor, query, MOCK_IMAGE)
+            batch = self.processor.process_queries(query)
             batch = {k: v.to(self.device) for k, v in batch.items()}
             embeddings = self.model(**batch)
 
