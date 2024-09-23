@@ -35,7 +35,7 @@ dependencies = [
     "pdf2image",
     "srsly",
     "torch",
-    "transformers",
+    "transformers>=4.42.0",
 ]
 
 [project.optional-dependencies]
