@@ -26,7 +26,7 @@ class RAGMultiModalModel:
     ```python
     from byaldi import RAGMultiModalModel
 
-    RAG = RAGMultiModalModel.from_pretrained("vidore/colpali")
+    RAG = RAGMultiModalModel.from_pretrained("vidore/colpali-v1.2")
     ```
 
     Both methods will load a fully initialised instance of ColPali, which you can use to build and query indexes.
