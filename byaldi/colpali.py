@@ -1,5 +1,6 @@
 import os
 import shutil
+import requests
 import tempfile
 from importlib.metadata import version
 from pathlib import Path
@@ -12,6 +13,8 @@ from pdf2image import convert_from_path
 from PIL import Image
 
 from byaldi.objects import Result
+from byaldi.typedefs import ColPaliRequest
+from byaldi.utils import base64_encode_image_list
 
 # Import version directly from the package metadata
 VERSION = version("Byaldi")
@@ -42,6 +45,7 @@ class ColPaliModel:
                 f"Verbosity is set to {verbose} ({'active' if verbose == 1 else 'loud'}). Pass verbose=0 to make quieter."
             )
 
+        self.local_url = "http://localhost:8000/predict"
         self.pretrained_model_name_or_path = pretrained_model_name_or_path
         self.model_name = self.pretrained_model_name_or_path
         self.n_gpu = torch.cuda.device_count() if n_gpu == -1 else n_gpu
@@ -64,18 +68,18 @@ class ColPaliModel:
         self.doc_ids_to_file_names = {}
         self.doc_ids = set()
 
-        self.model = ColPali.from_pretrained(
-            self.pretrained_model_name_or_path,
-            torch_dtype=torch.bfloat16,
-            device_map=(
-                "cuda"
-                if device == "cuda"
-                or (isinstance(device, torch.device) and device.type == "cuda")
-                else None
-            ),
-            token=kwargs.get("hf_token", None) or os.environ.get("HF_TOKEN"),
-        )
-        self.model = self.model.eval()
+        # self.model = ColPali.from_pretrained(
+        #     self.pretrained_model_name_or_path,
+        #     torch_dtype=torch.bfloat16,
+        #     device_map=(
+        #         "cuda"
+        #         if device == "cuda"
+        #         or (isinstance(device, torch.device) and device.type == "cuda")
+        #         else None
+        #     ),
+        #     token=kwargs.get("hf_token", None) or os.environ.get("HF_TOKEN"),
+        # )
+        # self.model = self.model.eval()
 
         self.processor = cast(
             ColPaliProcessor,
@@ -86,10 +90,10 @@ class ColPaliModel:
         )
 
         self.device = device
-        if device != "cuda" and not (
-            isinstance(device, torch.device) and device.type == "cuda"
-        ):
-            self.model = self.model.to(device)
+        # if device != "cuda" and not (
+        #     isinstance(device, torch.device) and device.type == "cuda"
+        # ):
+        #     self.model = self.model.to(device)
 
         if not load_from_index:
             self.full_document_collection = False
@@ -510,17 +514,25 @@ class ColPaliModel:
             raise ValueError(
                 f"Document ID {doc_id} with page ID {page_id} already exists in the index"
             )
+        
+        request = ColPaliRequest(
+            image_input=True,
+            inputs=base64_encode_image_list([image]),
+        )
+        embedding = requests.post(self.local_url, json=request.model_dump()).json()
+        embedding = [torch.tensor(e) for e in embedding]
 
-        processed_image = self.processor.process_images([image])
+        # processed_image = self.processor.process_images([image])
 
-        # Generate embedding
-        with torch.no_grad():
-            processed_image = {k: v.to(self.device) for k, v in processed_image.items()}
-            embedding = self.model(**processed_image)
+        # # Generate embedding
+        # with torch.no_grad():
+        #     processed_image = {k: v.to(self.device) for k, v in processed_image.items()}
+        #     embedding = self.model(**processed_image)
 
         # Add to index
         embed_id = len(self.indexed_embeddings)
-        self.indexed_embeddings.extend(list(torch.unbind(embedding.to("cpu"))))
+        self.indexed_embeddings.extend(embedding)
+        # self.indexed_embeddings.extend(list(torch.unbind(embedding.to("cpu"))))
         self.embed_id_to_doc_id[embed_id] = {"doc_id": doc_id, "page_id": int(page_id)}
 
         # Update highest_doc_id
@@ -592,11 +604,19 @@ class ColPaliModel:
         results = []
         for q in queries:
             # Process query
-            with torch.no_grad():
-                batch_query = self.processor.process_queries([q])
-                batch_query = {k: v.to(self.device) for k, v in batch_query.items()}
-                embeddings_query = self.model(**batch_query)
-            qs = list(torch.unbind(embeddings_query.to("cpu")))
+        
+            request = ColPaliRequest(
+                inputs=[q],
+                image_input=False,
+            )
+            embeddings_query = requests.post(self.local_url, json=request.model_dump()).json()
+            qs = [torch.tensor(e) for e in embeddings_query]
+
+            # with torch.no_grad():
+            #     batch_query = self.processor.process_queries([q])
+            #     batch_query = {k: v.to(self.device) for k, v in batch_query.items()}
+            #     embeddings_query = self.model(**batch_query)
+            # qs = list(torch.unbind(embeddings_query.to("cpu")))
 
             # Compute scores
             scores = self.processor.score(qs, self.indexed_embeddings).cpu().numpy()
@@ -669,11 +689,19 @@ class ColPaliModel:
                     raise ValueError(f"Unsupported file type: {item}")
             else:
                 raise ValueError(f"Unsupported input type: {type(item)}")
+            
+        
+        request = ColPaliRequest(
+            image_input=True,
+            inputs=base64_encode_image_list(images),
+        )
+        embeddings = requests.post(self.local_url, json=request.model_dump()).json()
+        embeddings = torch.tensor(embeddings)
 
-        with torch.no_grad():
-            batch = self.processor.process_images(images)
-            batch = {k: v.to(self.device) for k, v in batch.items()}
-            embeddings = self.model(**batch)
+        # with torch.no_grad():
+        #     batch = self.processor.process_images(images)
+        #     batch = {k: v.to(self.device) for k, v in batch.items()}
+        #     embeddings = self.model(**batch)
 
         return embeddings.cpu()
 
@@ -690,11 +718,18 @@ class ColPaliModel:
         """
         if isinstance(query, str):
             query = [query]
+        
+        request = ColPaliRequest(
+            inputs=query,
+            image_input=False,
+        )
+        embeddings = requests.post(self.local_url, json=request.model_dump()).json()
+        embeddings = torch.tensor(embeddings)
 
-        with torch.no_grad():
-            batch = self.processor.process_queries(query)
-            batch = {k: v.to(self.device) for k, v in batch.items()}
-            embeddings = self.model(**batch)
+        # with torch.no_grad():
+        #     batch = self.processor.process_queries(query)
+        #     batch = {k: v.to(self.device) for k, v in batch.items()}
+        #     embeddings = self.model(**batch)
 
         return embeddings.cpu()
 
