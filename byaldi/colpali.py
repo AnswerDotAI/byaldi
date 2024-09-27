@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Union, cast
 
 import srsly
 import torch
-from colpali_engine.models import ColPali, ColPaliProcessor
+from colpali_engine.models import ColPali, ColPaliProcessor, ColQwen2, ColQwen2Processor
 from pdf2image import convert_from_path
 from PIL import Image
 
@@ -32,9 +32,12 @@ class ColPaliModel:
         if isinstance(pretrained_model_name_or_path, Path):
             pretrained_model_name_or_path = str(pretrained_model_name_or_path)
 
-        if "colpali" not in pretrained_model_name_or_path.lower():
+        if (
+            "colpali" not in pretrained_model_name_or_path.lower()
+            and "colqwen2" not in pretrained_model_name_or_path.lower()
+        ):
             raise ValueError(
-                "This pre-release version of Byaldi only supports ColPali for now. Incorrect model name specified."
+                "This pre-release version of Byaldi only supports ColPali and ColQwen2 for now. Incorrect model name specified."
             )
 
         if verbose > 0:
@@ -48,9 +51,7 @@ class ColPaliModel:
         device = (
             device or "cuda"
             if torch.cuda.is_available()
-            else "mps"
-            if torch.backends.mps.is_available()
-            else "cpu"
+            else "mps" if torch.backends.mps.is_available() else "cpu"
         )
         self.index_name = index_name
         self.verbose = verbose
@@ -64,26 +65,48 @@ class ColPaliModel:
         self.doc_ids_to_file_names = {}
         self.doc_ids = set()
 
-        self.model = ColPali.from_pretrained(
-            self.pretrained_model_name_or_path,
-            torch_dtype=torch.bfloat16,
-            device_map=(
-                "cuda"
-                if device == "cuda"
-                or (isinstance(device, torch.device) and device.type == "cuda")
-                else None
-            ),
-            token=kwargs.get("hf_token", None) or os.environ.get("HF_TOKEN"),
-        )
+        if "colpali" in pretrained_model_name_or_path.lower():
+            self.model = ColPali.from_pretrained(
+                self.pretrained_model_name_or_path,
+                torch_dtype=torch.bfloat16,
+                device_map=(
+                    "cuda"
+                    if device == "cuda"
+                    or (isinstance(device, torch.device) and device.type == "cuda")
+                    else None
+                ),
+                token=kwargs.get("hf_token", None) or os.environ.get("HF_TOKEN"),
+            )
+        elif "colqwen2" in pretrained_model_name_or_path.lower():
+            self.model = ColQwen2.from_pretrained(
+                self.pretrained_model_name_or_path,
+                torch_dtype=torch.bfloat16,
+                device_map=(
+                    "cuda"
+                    if device == "cuda"
+                    or (isinstance(device, torch.device) and device.type == "cuda")
+                    else None
+                ),
+                token=kwargs.get("hf_token", None) or os.environ.get("HF_TOKEN"),
+            )
         self.model = self.model.eval()
 
-        self.processor = cast(
-            ColPaliProcessor,
-            ColPaliProcessor.from_pretrained(
-                self.pretrained_model_name_or_path,
-                token=kwargs.get("hf_token", None) or os.environ.get("HF_TOKEN"),
-            ),
-        )
+        if "colpali" in pretrained_model_name_or_path.lower():
+            self.processor = cast(
+                ColPaliProcessor,
+                ColPaliProcessor.from_pretrained(
+                    self.pretrained_model_name_or_path,
+                    token=kwargs.get("hf_token", None) or os.environ.get("HF_TOKEN"),
+                ),
+            )
+        elif "colqwen2" in pretrained_model_name_or_path.lower():
+            self.processor = cast(
+                ColQwen2Processor,
+                ColQwen2Processor.from_pretrained(
+                    self.pretrained_model_name_or_path,
+                    token=kwargs.get("hf_token", None) or os.environ.get("HF_TOKEN"),
+                ),
+            )
 
         self.device = device
         if device != "cuda" and not (
@@ -240,9 +263,9 @@ class ColPaliModel:
             "model_name": self.model_name,
             "full_document_collection": self.full_document_collection,
             "highest_doc_id": self.highest_doc_id,
-            "resize_stored_images": True
-            if self.max_image_width and self.max_image_height
-            else False,
+            "resize_stored_images": (
+                True if self.max_image_width and self.max_image_height else False
+            ),
             "max_image_width": self.max_image_width,
             "max_image_height": self.max_image_height,
             "library_version": VERSION,
@@ -468,9 +491,9 @@ class ColPaliModel:
                 with tempfile.TemporaryDirectory() as path:
                     images = convert_from_path(
                         item,
-                        thread_count=os.cpu_count()-1,
+                        thread_count=os.cpu_count() - 1,
                         output_folder=path,
-                        paths_only=True
+                        paths_only=True,
                     )
                     for i, image_path in enumerate(images):
                         image = Image.open(image_path)
@@ -613,9 +636,11 @@ class ColPaliModel:
                     page_num=int(doc_info["page_id"]),
                     score=float(scores[0][embed_id]),
                     metadata=self.doc_id_to_metadata.get(int(doc_info["doc_id"]), {}),
-                    base64=self.collection.get(int(embed_id))
-                    if return_base64_results
-                    else None,
+                    base64=(
+                        self.collection.get(int(embed_id))
+                        if return_base64_results
+                        else None
+                    ),
                 )
                 query_results.append(result)
 
@@ -655,9 +680,7 @@ class ColPaliModel:
                     # Process PDF
                     with tempfile.TemporaryDirectory() as path:
                         pdf_images = convert_from_path(
-                            item,
-                            thread_count=os.cpu_count()-1,
-                            output_folder=path
+                            item, thread_count=os.cpu_count() - 1, output_folder=path
                         )
                         images.extend(pdf_images)
                 elif item.lower().endswith(
