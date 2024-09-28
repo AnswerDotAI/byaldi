@@ -342,7 +342,7 @@ class ColPaliModel:
                     item,
                     store_collection_with_index,
                     doc_id=doc_id,
-                    doc_metadata=doc_metadata,
+                    metadata=doc_metadata,
                 )
                 self.doc_ids_to_file_names[doc_id] = str(item)
         else:
@@ -356,7 +356,7 @@ class ColPaliModel:
                 input_path,
                 store_collection_with_index,
                 doc_id=doc_id,
-                doc_metadata=doc_metadata,
+                metadata=doc_metadata,
             )
             self.doc_ids_to_file_names[doc_id] = str(input_path)
 
@@ -368,7 +368,7 @@ class ColPaliModel:
         input_item: Union[str, Path, Image.Image, List[Union[str, Path, Image.Image]]],
         store_collection_with_index: bool,
         doc_id: Optional[Union[int, List[int]]] = None,
-        doc_metadata: Optional[List[Dict[str, Union[str, int]]]] = None,
+        metadata: Optional[List[Dict[str, Union[str, int]]]] = None,
     ) -> Dict[int, str]:
         if self.index_name is None:
             raise ValueError(
@@ -399,7 +399,7 @@ class ColPaliModel:
         # Process each input item
         for i, item in enumerate(input_items):
             current_doc_id = doc_ids[i] if doc_ids else self.highest_doc_id + 1 + i
-            current_metadata = doc_metadata if doc_metadata else None
+            current_metadata = metadata if metadata else None
 
             if current_doc_id in self.doc_ids:
                 raise ValueError(
@@ -566,12 +566,6 @@ class ColPaliModel:
     def remove_from_index(self):
         raise NotImplementedError("This method is not implemented yet.")
 
-    @capture_print
-    def _score(self, qs: torch.Tensor, req_embeddings:List[torch.Tensor]):
-        retriever_evaluator = CustomEvaluator(is_multi_vector=True)
-        scores = retriever_evaluator.evaluate(qs, req_embeddings)
-        return scores
-
     def filter_embeddings(self,filter_metadata:Dict[str,str]):
         req_doc_ids = []
         for idx,metadata_dict in self.doc_id_to_metadata.items():
@@ -596,6 +590,7 @@ class ColPaliModel:
         if return_base64_results is None:
             return_base64_results = bool(self.collection)
 
+        valid_metadata_keys = list(self.doc_id_to_metadata.values())
         # Ensure k is not larger than the number of indexed documents
         k = min(k, len(self.indexed_embeddings))
 
