@@ -618,7 +618,7 @@ class ColPaliModel:
             else:
                 req_embeddings, req_embedding_ids = self.filter_embeddings(filter_metadata=filter_metadata) 
             # Compute scores
-            scores = self.processor.score(qs,req_embeddings, self.indexed_embeddings).cpu().numpy()
+            scores = self.processor.score(qs,req_embeddings).cpu().numpy()
 
             # Get top k relevant pages
             top_pages = scores.argsort(axis=1)[0][-k:][::-1].tolist()
