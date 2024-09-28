@@ -28,25 +28,28 @@ maintainers = [
 ]
 
 dependencies = [
-    "colpali-engine==0.2.2",
+    "colpali-engine>=0.3.0,<0.4.0",
     "ml-dtypes",
     "mteb==1.6.35",
     "ninja",
     "pdf2image",
     "srsly",
     "torch",
-    "transformers",
+    "transformers>=4.42.0",
 ]
 
 [project.optional-dependencies]
 dev = ["pytest>=7.4.0", "ruff>=0.1.9"]
 server = ["uvicorn", "fastapi"]
+langchain = ["langchain-core"]
 
 [project.urls]
 "Homepage" = "https://github.com/answerdotai/byaldi"
 
 [tool.pytest.ini_options]
 filterwarnings = ["ignore::Warning"]
+markers = ["slow: marks test as slow"]
+testpaths = ["tests"]
 
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.
