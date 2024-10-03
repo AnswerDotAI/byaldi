@@ -7,7 +7,7 @@ packages = ["byaldi"]
 
 [project]
 name = "Byaldi"
-version = "0.0.4"
+version = "0.0.5"
 description = "Use late-interaction multi-modal models such as ColPali in just a few lines of code."
 readme = "README.md"
 requires-python = ">=3.9"
