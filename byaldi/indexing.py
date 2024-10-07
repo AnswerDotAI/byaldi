@@ -13,6 +13,42 @@ from byaldi.objects import Result
 
 
 class IndexManager:
+    """
+    A class to manage the indexing of documents and images.
+    Attributes:
+        index_root (str): The root directory for storing index files.
+        verbose (int): Verbosity level for logging.
+        collection (dict): A collection of in-memory images.
+        indexed_embeddings (list): A list of indexed embeddings.
+        embed_id_to_doc_id (dict): Mapping from embedding ID to document ID.
+        doc_id_to_metadata (dict): Mapping from document ID to metadata.
+        doc_ids_to_file_names (dict): Mapping from document IDs to file names.
+        doc_ids (set): A set of document IDs.
+        highest_doc_id (int): The highest document ID in the index.
+        full_document_collection (bool): Flag to store the full document collection.
+        index_name (str): The name of the current index.
+        max_image_width (int): Maximum width for stored images.
+        max_image_height (int): Maximum height for stored images.
+    Methods:
+        create_index(index_name, store_collection_with_index=False, overwrite=False, max_image_width=None, max_image_height=None):
+            Creates a new index with the specified name and options.
+        add_to_index(input_item, embed_func, doc_id=None, metadata=None):
+            Adds items to the index using the provided embedding function.
+        _process_directory(directory, embed_func, base_doc_id, metadata):
+            Processes a directory of items and adds them to the index.
+        _process_and_add_to_index(item, embed_func, doc_id, metadata=None):
+            Processes a single item and adds it to the index.
+        _add_to_index(image, embed_func, doc_id, page_id=1, metadata=None):
+            Adds a processed image to the index.
+        search(query, score_func, k=10, return_base64_results=None):
+            Searches the index for the top-k results matching the query.
+        _export_index():
+            Exports the current index to disk.
+        load_index(index_name):
+            Loads an existing index from disk.
+        get_doc_ids_to_file_names():
+            Returns the mapping of document IDs to file names.
+    """
     def __init__(
         self,
         index_root: str = ".byaldi",
