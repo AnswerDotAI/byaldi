@@ -63,7 +63,8 @@ class ColPaliModel:
 
         return embeddings.cpu()
 
-    def score(self, query_embeddings: torch.Tensor, document_embeddings: List[torch.Tensor]) -> torch.Tensor:
+    def score(self, query: Union[str, List[str]], document_embeddings: List[torch.Tensor]) -> torch.Tensor:
+        query_embeddings = self.encode_query(query)
         document_embeddings_tensor = torch.stack(document_embeddings)
-        scores = torch.matmul(query_embeddings, document_embeddings_tensor.t())
+        scores = self.processor.score(query_embeddings, document_embeddings_tensor)
         return scores.cpu()

@@ -118,6 +118,7 @@ class RAGMultiModalModel:
         """
         self.index_manager.create_index(
             index_name,
+            self.model.pretrained_model_name_or_path,
             store_collection_with_index,
             overwrite,
             max_image_width,

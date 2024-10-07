@@ -29,6 +29,7 @@ class IndexManager:
         index_name (str): The name of the current index.
         max_image_width (int): Maximum width for stored images.
         max_image_height (int): Maximum height for stored images.
+        model_name (str): The name of the model used for indexing.
     Methods:
         create_index(index_name, store_collection_with_index=False, overwrite=False, max_image_width=None, max_image_height=None):
             Creates a new index with the specified name and options.
@@ -67,10 +68,12 @@ class IndexManager:
         self.index_name = None
         self.max_image_width = None
         self.max_image_height = None
+        self.model_name = None
 
     def create_index(
         self,
         index_name: str,
+        model_name: str,
         store_collection_with_index: bool = False,
         overwrite: bool = False,
         max_image_width: Optional[int] = None,
@@ -91,6 +94,7 @@ class IndexManager:
         self.max_image_width = max_image_width
         self.max_image_height = max_image_height
         self.highest_doc_id = -1
+        self.model_name = model_name
 
     def add_to_index(
         self,
@@ -98,6 +102,7 @@ class IndexManager:
         embed_func,
         doc_id: Optional[Union[int, List[int]]] = None,
         metadata: Optional[List[Dict[str, Union[str, int]]]] = None,
+        store_collection_with_index: Optional[bool] = None,
     ) -> Dict[int, str]:
         if self.index_name is None:
             raise ValueError("No index loaded. Use create_index() first.")
@@ -244,24 +249,29 @@ class IndexManager:
         results = []
         for q in queries:
             scores = score_func(q, self.indexed_embeddings)
-            top_pages = scores.argsort(axis=1)[0][-k:][::-1].tolist()
-
+            
+            # Ensure scores is a 2D tensor
+            if scores.dim() == 1:
+                scores = scores.unsqueeze(0)
+            
+            top_k_values, top_k_indices = scores.topk(k, dim=1)
+            
             query_results = []
-            for embed_id in top_pages:
-                doc_info = self.embed_id_to_doc_id[int(embed_id)]
-                result = Result(
-                    doc_id=doc_info["doc_id"],
-                    page_num=int(doc_info["page_id"]),
-                    score=float(scores[0][embed_id]),
-                    metadata=self.doc_id_to_metadata.get(int(doc_info["doc_id"]), {}),
-                    base64=(self.collection.get(int(embed_id)) if return_base64_results else None)
-                )
-                query_results.append(result)
-
+            for values, indices in zip(top_k_values, top_k_indices):
+                for score, embed_id in zip(values.tolist(), indices.tolist()):
+                    doc_info = self.embed_id_to_doc_id[int(embed_id)]
+                    result = Result(
+                        doc_id=doc_info["doc_id"],
+                        page_num=int(doc_info["page_id"]),
+                        score=float(score),
+                        metadata=self.doc_id_to_metadata.get(int(doc_info["doc_id"]), {}),
+                        base64=(self.collection.get(int(embed_id)) if return_base64_results else None)
+                    )
+                    query_results.append(result)
+            
             results.append(query_results)
 
         return results[0] if isinstance(query, str) else results
-
     def _export_index(self):
         if self.index_name is None:
             raise ValueError("No index name specified. Cannot export.")
@@ -280,6 +290,7 @@ class IndexManager:
 
         # Save index config
         index_config = {
+            "model_name": self.model_name,
             "full_document_collection": self.full_document_collection,
             "highest_doc_id": self.highest_doc_id,
             "resize_stored_images": (True if self.max_image_width and self.max_image_height else False),
@@ -315,6 +326,7 @@ class IndexManager:
 
         self.index_name = index_name
         index_config = srsly.read_gzip_json(index_path / "index_config.json.gz")
+        self.model_name = index_config["model_name"]
         self.full_document_collection = index_config.get("full_document_collection", False)
         self.max_image_width = index_config.get("max_image_width", None)
         self.max_image_height = index_config.get("max_image_height", None)
