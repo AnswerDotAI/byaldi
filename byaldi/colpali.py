@@ -49,9 +49,9 @@ class ColPaliModel:
         self.model_name = self.pretrained_model_name_or_path
         self.n_gpu = torch.cuda.device_count() if n_gpu == -1 else n_gpu
         device = (
-            device or ("cuda"
-            if torch.cuda.is_available()
-            else "mps" if torch.backends.mps.is_available() else "cpu")
+            device or (
+                "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
+            )
         )
         self.index_name = index_name
         self.verbose = verbose
