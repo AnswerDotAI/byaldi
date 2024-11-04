@@ -5,7 +5,7 @@ from PIL import Image
 
 from byaldi.colpali import ColPaliModel
 
-from byaldi.objects import Result
+from byaldi.typedefs import Result
 
 # Optional langchain integration
 try:
