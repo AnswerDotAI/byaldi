@@ -8,7 +8,7 @@ class ColPaliRequest(BaseModel):
 
 
 class Result(BaseModel):
-    doc_id: str
+    doc_id: int
     page_num: int
     score: float
     metadata: dict = {}
