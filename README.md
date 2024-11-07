@@ -1,3 +1,4 @@
+
 # Welcome to Byaldi
 _Did you know? In the movie RAGatouille, the dish Remy makes is not actually a ratatouille, but a refined version of the dish called "Confit Byaldi"._
 
@@ -9,7 +10,7 @@ Byaldi is [RAGatouille](https://github.com/answerdotai/ragatouille)'s mini siste
 
 ## Getting started
 
-First, a warning: This is a pre-release library, using uncompressed indexes and lacking other kinds of refinements. The only supported model, currently, is the original PaliGemma-based ColPali checkpoints family, including `vidore/colpali` and the updated `vidore/colpali-v1.2`. Additional backends will be supported in future updates. Eventually, we'll add an HNSW indexing mechanism, pooling, and, who knows, maybe 2-bit quantization?
+First, a warning: This is a pre-release library, using uncompressed indexes and lacking other kinds of refinements. The only supported model, currently, is the original PaliGemma-based ColPali checkpoints family, including `vidore/colpali`, the updated `vidore/colpali-v1.2` and the latest `vidore/colqwen2-v0.1`. Additional backends will be supported in future updates. Eventually, we'll add an HNSW indexing mechanism, pooling, and, who knows, maybe 2-bit quantization?
 
 It will get updated as the multi-modal ecosystem develops further!
 
@@ -56,19 +57,31 @@ Byaldi is largely modeled after RAGatouille, meaning that everything is designed
 ### Loading a model
 
 Loading a model with `byaldi` is extremely straightforward:
+Byaldi as of now supports `vidore/colpali-v1.2` and `vidore/colqwen2-v0.1`
 
 ```python3
 from byaldi import RAGMultiModalModel
-# Optionally, you can specify an `index_root`, which is where it'll save the index. It defaults to ".byaldi/".
+
+# Load the model. Choose between "vidore/colpali-v1.2" and "vidore/colqwen2-v0.1"
 RAG = RAGMultiModalModel.from_pretrained("vidore/colpali-v1.2")
+
+# The indexes of the documents are stored in ".byaldi/" by default.
+# If you want to store the indexes in a custom Directory (In which you can navigate easily to) use this :
+
+RAG = RAGMultiModalModel.from_pretrained("vidore/colpali-v1.2", index_root = "./your_directory" )
+
 ```
 
 If you've already got an index, and wish to load it along with the model necessary to query it, you can do so just as easily:
 
 ```python3
 from byaldi import RAGMultiModalModel
-# Optionally, you can specify an `index_root`, which is where it'll look for the index. It defaults to ".byaldi/".
+# Load already present index from default directory : ".byaldi/".
 RAG = RAGMultiModalModel.from_index("your_index_name")
+
+# Load already present index from your custom directory.
+RAG = RAGMultiModalModel.from_index("your_index_name", index_root = "./your_directory")
+
 ```
 
 ### Creating an index
