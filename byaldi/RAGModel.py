@@ -198,15 +198,15 @@ class RAGMultiModalModel:
         PermissionError: If there are insufficient permissions to write to the directory.
         Exception: For any other unexpected errors during the save process.
     """
-    try:
-        # Attempt to save the model and processor
-        self.model.model.save_pretrained(directory_path)
-        self.model.processor.save_pretrained(directory_path)
-        
-    except FileNotFoundError as fnf_error:
-        raise FileNotFoundError(f"The specified directory '{directory_path}' does not exist.") from fnf_error
-    except PermissionError as perm_error:
-        raise PermissionError(f"Insufficient permissions to write to '{directory_path}'.") from perm_error
-    except Exception as e:
-        raise Exception(f"An unexpected error occurred while saving: {e}") from e
+        try:
+            # Attempt to save the model and processor
+            self.model.model.save_pretrained(directory_path)
+            self.model.processor.save_pretrained(directory_path)
+            
+        except FileNotFoundError as fnf_error:
+            raise FileNotFoundError(f"The specified directory '{directory_path}' does not exist.") from fnf_error
+        except PermissionError as perm_error:
+            raise PermissionError(f"Insufficient permissions to write to '{directory_path}'.") from perm_error
+        except Exception as e:
+            raise Exception(f"An unexpected error occurred while saving: {e}") from e
 
