@@ -179,6 +179,7 @@ class RAGMultiModalModel:
     def as_langchain_retriever(self, **kwargs: Any):
         return ByaldiLangChainRetriever(model=self, kwargs=kwargs)
 
+
     def save_pretrained(self, directory_path: str) -> None:
         """
         Save the model and processor to a specified directory.
@@ -191,7 +192,7 @@ class RAGMultiModalModel:
 
         This function saves both the model and processor components of the current instance
         to the specified directory, allowing the model to be reloaded later from this checkpoint.
-        However for complete local setup follow this - https://github.com/illuin-tech/colpali/issues/129
+        However, for complete local setup follow this - https://github.com/illuin-tech/colpali/issues/129
 
         Raises:
             FileNotFoundError: If the specified directory does not exist.
@@ -209,4 +210,4 @@ class RAGMultiModalModel:
             raise PermissionError(f"Insufficient permissions to write to '{directory_path}'.") from perm_error
         except Exception as e:
             raise Exception(f"An unexpected error occurred while saving: {e}") from e
-
+    
