@@ -180,34 +180,34 @@ class RAGMultiModalModel:
         return ByaldiLangChainRetriever(model=self, kwargs=kwargs)
 
 
-    def save_pretrained(self, directory_path: str) -> None:
-        """
-        Save the model and processor to a specified directory.
+    # def save_pretrained(self, directory_path: str) -> None:
+    #     """
+    #     Save the model and processor to a specified directory.
 
-        Parameters:
-            directory_path (str): The path to the directory where the model and processor should be saved.
+    #     Parameters:
+    #         directory_path (str): The path to the directory where the model and processor should be saved.
 
-        Returns:
-            None
+    #     Returns:
+    #         None
 
-        This function saves both the model and processor components of the current instance
-        to the specified directory, allowing the model to be reloaded later from this checkpoint.
-        However, for complete local setup follow this - https://github.com/illuin-tech/colpali/issues/129
+    #     This function saves both the model and processor components of the current instance
+    #     to the specified directory, allowing the model to be reloaded later from this checkpoint.
+    #     However, for complete local setup follow this - https://github.com/illuin-tech/colpali/issues/129
 
-        Raises:
-            FileNotFoundError: If the specified directory does not exist.
-            PermissionError: If there are insufficient permissions to write to the directory.
-            Exception: For any other unexpected errors during the save process.
-        """
-        try:
-            # Attempt to save the model and processor
-            self.model.model.save_pretrained(directory_path)
-            self.model.processor.save_pretrained(directory_path)
+    #     Raises:
+    #         FileNotFoundError: If the specified directory does not exist.
+    #         PermissionError: If there are insufficient permissions to write to the directory.
+    #         Exception: For any other unexpected errors during the save process.
+    #     """
+    #     try:
+    #         # Attempt to save the model and processor
+    #         self.model.model.save_pretrained(directory_path)
+    #         self.model.processor.save_pretrained(directory_path)
             
-        except FileNotFoundError as fnf_error:
-            raise FileNotFoundError(f"The specified directory '{directory_path}' does not exist.") from fnf_error
-        except PermissionError as perm_error:
-            raise PermissionError(f"Insufficient permissions to write to '{directory_path}'.") from perm_error
-        except Exception as e:
-            raise Exception(f"An unexpected error occurred while saving: {e}") from e
+    #     except FileNotFoundError as fnf_error:
+    #         raise FileNotFoundError(f"The specified directory '{directory_path}' does not exist.") from fnf_error
+    #     except PermissionError as perm_error:
+    #         raise PermissionError(f"Insufficient permissions to write to '{directory_path}'.") from perm_error
+    #     except Exception as e:
+    #         raise Exception(f"An unexpected error occurred while saving: {e}") from e
     
