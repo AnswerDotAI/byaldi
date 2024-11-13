@@ -418,15 +418,11 @@ class ColPaliModel:
             raise ValueError(
                 f"Number of doc_ids ({len(doc_ids)}) does not match number of input items ({len(input_items)})"
             )
-        if metadata and len(metadata) != len(input_items):
-            raise ValueError(
-                f"Number of metadata entries ({len(metadata)}) does not match number of input items ({len(input_items)})"
-            )
 
         # Process each input item
         for i, item in enumerate(input_items):
             current_doc_id = doc_ids[i] if doc_ids else self.highest_doc_id + 1 + i
-            current_metadata = metadata[i] if metadata else None
+            current_metadata = metadata if metadata else None
 
             if current_doc_id in self.doc_ids:
                 raise ValueError(
@@ -593,16 +589,31 @@ class ColPaliModel:
     def remove_from_index(self):
         raise NotImplementedError("This method is not implemented yet.")
 
+    def filter_embeddings(self,filter_metadata:Dict[str,str]):
+        req_doc_ids = []
+        for idx,metadata_dict in self.doc_id_to_metadata.items():
+            for metadata_key,metadata_value in metadata_dict.items():
+                if metadata_key in filter_metadata:
+                    if filter_metadata[metadata_key] == metadata_value:
+                        req_doc_ids.append(idx)
+                        
+        req_embedding_ids = [eid for eid,doc in self.embed_id_to_doc_id.items() if doc['doc_id'] in req_doc_ids]
+        req_embeddings = [ie for idx,ie in enumerate(self.indexed_embeddings) if idx in req_embedding_ids]
+
+        return req_embeddings, req_embedding_ids
+    
     def search(
         self,
         query: Union[str, List[str]],
         k: int = 10,
+        filter_metadata: Optional[Dict[str,str]] = None,
         return_base64_results: Optional[bool] = None,
     ) -> Union[List[Result], List[List[Result]]]:
         # Set default value for return_base64_results if not provided
         if return_base64_results is None:
             return_base64_results = bool(self.collection)
 
+        valid_metadata_keys = list(self.doc_id_to_metadata.values())
         # Ensure k is not larger than the number of indexed documents
         k = min(k, len(self.indexed_embeddings))
 
@@ -620,9 +631,12 @@ class ColPaliModel:
                 batch_query = {k: v.to(self.device) for k, v in batch_query.items()}
                 embeddings_query = self.model(**batch_query)
             qs = list(torch.unbind(embeddings_query.to("cpu")))
-
+            if not filter_metadata:
+                req_embeddings = self.indexed_embeddings
+            else:
+                req_embeddings, req_embedding_ids = self.filter_embeddings(filter_metadata=filter_metadata) 
             # Compute scores
-            scores = self.processor.score(qs, self.indexed_embeddings).cpu().numpy()
+            scores = self.processor.score(qs,req_embeddings).cpu().numpy()
 
             # Get top k relevant pages
             top_pages = scores.argsort(axis=1)[0][-k:][::-1].tolist()
@@ -630,17 +644,19 @@ class ColPaliModel:
             # Create Result objects
             query_results = []
             for embed_id in top_pages:
-                doc_info = self.embed_id_to_doc_id[int(embed_id)]
+                if filter_metadata:
+                    adjusted_embed_id = req_embedding_ids[embed_id]
+                else:
+                    adjusted_embed_id = int(embed_id)
+                doc_info = self.embed_id_to_doc_id[adjusted_embed_id]
                 result = Result(
                     doc_id=doc_info["doc_id"],
                     page_num=int(doc_info["page_id"]),
-                    score=float(scores[0][embed_id]),
+                    score=float(scores[0][int(embed_id)]),
                     metadata=self.doc_id_to_metadata.get(int(doc_info["doc_id"]), {}),
-                    base64=(
-                        self.collection.get(int(embed_id))
-                        if return_base64_results
-                        else None
-                    ),
+                    base64=self.collection.get(adjusted_embed_id)
+                    if return_base64_results
+                    else None,
                 )
                 query_results.append(result)
 
