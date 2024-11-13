@@ -9,15 +9,17 @@ Byaldi is [RAGatouille](https://github.com/answerdotai/ragatouille)'s mini siste
 
 ## Getting started
 
-First, a warning: This is a pre-release library, using uncompressed indexes and lacking other kinds of refinements. The only supported model, currently, is the original PaliGemma-based ColPali checkpoints family, including `vidore/colpali` and the updated `vidore/colpali-v1.2`. Additional backends will be supported in future updates. Eventually, we'll add an HNSW indexing mechanism, pooling, and, who knows, maybe 2-bit quantization?
+First, a warning: This is a pre-release library, using uncompressed indexes and lacking other kinds of refinements.
+
+Currently, we support all models supported by the underlying [colpali-engine](https://github.com/illuin-tech/colpali), including the newer, and better, ColQwen2 checkpoints, such as `vidore/colqwen2-v1.0`.  Broadly, the aim is for byaldi to support all ColVLM models.
+
+Additional backends will be supported in future updates. As byaldi exists to facilitate the adoption of multi-modal retrievers, we intend to also add support for models such as [VisRAG](https://github.com/openbmb/visrag).
+
+Eventually, we'll add an HNSW indexing mechanism, pooling, and, who knows, maybe 2-bit quantization?
 
 It will get updated as the multi-modal ecosystem develops further!
 
 ### Pre-requisites
-
-#### ColPali access
-
-ColPali is currently the only model of its kind. As it is based on PaliGemma, you will need to accept [Google's license agreement for PaliGemma on HuggingFace](https://huggingface.co/google/paligemma-3b-mix-448), and use your own HF token to download the model.
 
 #### Poppler
 
@@ -60,7 +62,7 @@ Loading a model with `byaldi` is extremely straightforward:
 ```python3
 from byaldi import RAGMultiModalModel
 # Optionally, you can specify an `index_root`, which is where it'll save the index. It defaults to ".byaldi/".
-RAG = RAGMultiModalModel.from_pretrained("vidore/colpali-v1.2")
+RAG = RAGMultiModalModel.from_pretrained("vidore/colqwen2-v1.0")
 ```
 
 If you've already got an index, and wish to load it along with the model necessary to query it, you can do so just as easily:
@@ -77,7 +79,7 @@ Creating an index with `byaldi` is simple and flexible. **You can index a single
 ```python3
 from byaldi import RAGMultiModalModel
 # Optionally, you can specify an `index_root`, which is where it'll save the index. It defaults to ".byaldi/".
-RAG = RAGMultiModalModel.from_pretrained("vidore/colpali-v1.2")
+RAG = RAGMultiModalModel.from_pretrained("vidore/colqwen2-v1.0")
 RAG.index(
     input_path="docs/", # The path to your documents
     index_name=index_name, # The name you want to give to your index. It'll be saved at `index_root/index_name/`.

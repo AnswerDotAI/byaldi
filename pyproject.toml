@@ -7,7 +7,7 @@ include = ["byaldi*"]
 
 [project]
 name = "Byaldi"
-version = "0.0.6"
+version = "0.0.7"
 description = "Use late-interaction multi-modal models such as ColPali in just a few lines of code."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -28,7 +28,7 @@ maintainers = [
 ]
 
 dependencies = [
-    "colpali-engine>=0.3.1,<0.4.0",
+    "colpali-engine>=0.3.4,<0.4.0",
     "ml-dtypes",
     "mteb==1.6.35",
     "ninja",

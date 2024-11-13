@@ -534,7 +534,10 @@ class ColPaliModel:
 
         # Generate embedding
         with torch.inference_mode():
-            processed_image = {k: v.to(self.device).to(self.model.dtype) for k, v in processed_image.items()}
+            processed_image = {
+                k: v.to(self.device).to(self.model.dtype if v.dtype in [torch.float16, torch.bfloat16, torch.float32] else v.dtype)
+                for k, v in processed_image.items()
+            }
             embedding = self.model(**processed_image)
 
         # Add to index
@@ -628,7 +631,7 @@ class ColPaliModel:
             # Process query
             with torch.inference_mode():
                 batch_query = self.processor.process_queries([q])
-                batch_query = {k: v.to(self.device).to(self.model.dtype) for k, v in batch_query.items()}
+                batch_query = {k: v.to(self.device).to(self.model.dtype if v.dtype in [torch.float16, torch.bfloat16, torch.float32] else v.dtype) for k, v in batch_query.items()}
                 embeddings_query = self.model(**batch_query)
             qs = list(torch.unbind(embeddings_query.to("cpu")))
             if not filter_metadata:
@@ -711,7 +714,7 @@ class ColPaliModel:
 
         with torch.inference_mode():
             batch = self.processor.process_images(images)
-            batch = {k: v.to(self.device) for k, v in batch.items()}
+            batch = {k: v.to(self.device).to(self.model.dtype if v.dtype in [torch.float16, torch.bfloat16, torch.float32] else v.dtype) for k, v in batch.items()}
             embeddings = self.model(**batch)
 
         return embeddings.cpu()
@@ -732,7 +735,7 @@ class ColPaliModel:
 
         with torch.inference_mode():
             batch = self.processor.process_queries(query)
-            batch = {k: v.to(self.device) for k, v in batch.items()}
+            batch = {k: v.to(self.device).to(self.model.dtype if v.dtype in [torch.float16, torch.bfloat16, torch.float32] else v.dtype) for k, v in batch.items()}
             embeddings = self.model(**batch)
 
         return embeddings.cpu()
