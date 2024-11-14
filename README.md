@@ -1,3 +1,4 @@
+
 # Welcome to Byaldi
 _Did you know? In the movie RAGatouille, the dish Remy makes is not actually a ratatouille, but a refined version of the dish called "Confit Byaldi"._
 
@@ -56,23 +57,36 @@ ColPali uses multi-billion parameter models to encode documents. We recommend us
 Byaldi is largely modeled after RAGatouille, meaning that everything is designed to take the fewest lines of code possible, so you can very quickly build on top of it rather than spending time figuring out how to create a retrieval pipeline.
 
 ### Loading a model
-
 Loading a model with `byaldi` is extremely straightforward:
+Byaldi as of now supports the new better `vidore/colqwen2-v1.0` checkpoints 
 
+  
 ```python3
 from byaldi import RAGMultiModalModel
-# Optionally, you can specify an `index_root`, which is where it'll save the index. It defaults to ".byaldi/".
-RAG = RAGMultiModalModel.from_pretrained("vidore/colqwen2-v1.0")
-```
 
+# Load the model. New: "vidore/colqwen2-v1.0" Older: "vidore/colpali-v1.2"
+RAG = RAGMultiModalModel.from_pretrained("vidore/colqwen2-v1.0")
+
+
+# The indexes of the documents are stored in ".byaldi/" by default.
+# If you want to store the indexes in a custom Directory (In which you can navigate easily to) use this :
+RAG = RAGMultiModalModel.from_pretrained("vidore/colqwen2-v1.0", index_root = "./your_directory" )
+
+```
 If you've already got an index, and wish to load it along with the model necessary to query it, you can do so just as easily:
 
+  
 ```python3
 from byaldi import RAGMultiModalModel
-# Optionally, you can specify an `index_root`, which is where it'll look for the index. It defaults to ".byaldi/".
-RAG = RAGMultiModalModel.from_index("your_index_name")
-```
 
+# Load already present index from default directory : ".byaldi/".
+RAG = RAGMultiModalModel.from_index("your_index_name")
+
+
+# Load already present index from your custom directory.
+RAG = RAGMultiModalModel.from_index("your_index_name", index_root = "./your_directory")
+
+```
 ### Creating an index
 Creating an index with `byaldi` is simple and flexible. **You can index a single PDF file, a single image file, or a directory containing multiple of those**. Here's how to create an index:
 
@@ -131,3 +145,14 @@ RAG.add_to_index("path_to_new_docs",
         ...
     )
 ```
+### Save the model and processor to a specified directory. 
+
+```python3
+RAG.save_pretrained(directory_path="/your_directory")
+```
+
+> This function saves both the model and processor components of the current instance to the specified directory, allowing the model to be reloaded later
+> from this checkpoint.
+> 
+> However, for complete local setup follow this -
+> https://github.com/illuin-tech/colpali/issues/129
