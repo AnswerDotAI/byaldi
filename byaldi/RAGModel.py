@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
-
+import os
 from PIL import Image
 
 from byaldi.colpali import ColPaliModel
@@ -179,3 +179,36 @@ class RAGMultiModalModel:
 
     def as_langchain_retriever(self, **kwargs: Any):
         return ByaldiLangChainRetriever(model=self, kwargs=kwargs)
+    
+    def save_pretrained(self, directory_path: str) -> None:
+        """
+        Save the model and processor to a specified directory.
+
+        Parameters:
+            directory_path (str): The path to the directory where the model and processor should be saved.
+
+        Returns:
+            None
+
+        This function saves both the model and processor components of the current instance
+        to the specified directory, allowing the model to be reloaded later from this checkpoint.
+        However, for complete local setup follow this - https://github.com/illuin-tech/colpali/issues/129
+
+        Raises:
+            FileNotFoundError: If the specified directory does not exist.
+            PermissionError: If there are insufficient permissions to write to the directory.
+            Exception: For any other unexpected errors during the save process.
+        """
+        try:
+            # Create the directory if it does not exist
+            os.makedirs(directory_path, exist_ok=True)
+            
+            # Attempt to save the model and processor
+            self.model.model.save_pretrained(directory_path)
+            self.model.processor.save_pretrained(directory_path)
+            
+        except PermissionError as perm_error:
+            raise PermissionError(f"Insufficient permissions to write to '{directory_path}'.") from perm_error
+        except Exception as e:
+            raise Exception(f"An unexpected error occurred while saving: {e}") from e
+    
