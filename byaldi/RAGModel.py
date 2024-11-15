@@ -90,7 +90,7 @@ class RAGMultiModalModel:
             index_path, 
             index_root=index_root, 
             device=device, 
-            erbose=verbose,
+            verbose=verbose,
             quantization_config=quantization_config,
         )
 
