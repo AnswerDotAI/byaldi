@@ -10,6 +10,7 @@ import torch
 from colpali_engine.models import ColPali, ColPaliProcessor, ColQwen2, ColQwen2Processor
 from pdf2image import convert_from_path
 from PIL import Image
+from transformers import BitsAndBytesConfig
 
 from byaldi.objects import Result
 
@@ -27,6 +28,7 @@ class ColPaliModel:
         load_from_index: bool = False,
         index_root: str = ".byaldi",
         device: Optional[Union[str, torch.device]] = None,
+        quantization_config: BitsAndBytesConfig | None = None,
         **kwargs,
     ):
         if isinstance(pretrained_model_name_or_path, Path):
@@ -76,6 +78,7 @@ class ColPaliModel:
                     else None
                 ),
                 token=kwargs.get("hf_token", None) or os.environ.get("HF_TOKEN"),
+                quantization_config=quantization_config,
             )
         elif "colqwen2" in pretrained_model_name_or_path.lower():
             self.model = ColQwen2.from_pretrained(
@@ -88,6 +91,7 @@ class ColPaliModel:
                     else None
                 ),
                 token=kwargs.get("hf_token", None) or os.environ.get("HF_TOKEN"),
+                quantization_config=quantization_config,
             )
         self.model = self.model.eval()
 
@@ -204,6 +208,7 @@ class ColPaliModel:
         verbose: int = 1,
         device: Optional[Union[str, torch.device]] = None,
         index_root: str = ".byaldi",
+        quantization_config: BitsAndBytesConfig | None = None,
         **kwargs,
     ):
         return cls(
@@ -213,6 +218,7 @@ class ColPaliModel:
             load_from_index=False,
             index_root=index_root,
             device=device,
+            quantization_config=quantization_config,
             **kwargs,
         )
 

@@ -28,6 +28,7 @@ maintainers = [
 ]
 
 dependencies = [
+    "bitsandbytes>=0.44.1",
     "colpali-engine>=0.3.4,<0.4.0",
     "ml-dtypes",
     "mteb==1.6.35",

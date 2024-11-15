@@ -2,9 +2,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 from PIL import Image
+from transformers import BitsAndBytesConfig
 
 from byaldi.colpali import ColPaliModel
-
 from byaldi.objects import Result
 
 # Optional langchain integration
@@ -45,6 +45,7 @@ class RAGMultiModalModel:
         index_root: str = ".byaldi",
         device: str = "cuda",
         verbose: int = 1,
+        quantization_config: BitsAndBytesConfig | None = None,
     ):
         """Load a ColPali model from a pre-trained checkpoint.
 
@@ -61,6 +62,7 @@ class RAGMultiModalModel:
             index_root=index_root,
             device=device,
             verbose=verbose,
+            quantization_config=quantization_config,
         )
         return instance
 
@@ -71,6 +73,7 @@ class RAGMultiModalModel:
         index_root: str = ".byaldi",
         device: str = "cuda",
         verbose: int = 1,
+        quantization_config: BitsAndBytesConfig | None = None,
     ):
         """Load an Index and the associated ColPali model from an existing document index.
 
@@ -84,7 +87,11 @@ class RAGMultiModalModel:
         instance = cls()
         index_path = Path(index_path)
         instance.model = ColPaliModel.from_index(
-            index_path, index_root=index_root, device=device, verbose=verbose
+            index_path, 
+            index_root=index_root, 
+            device=device, 
+            erbose=verbose,
+            quantization_config=quantization_config,
         )
 
         return instance
