@@ -45,6 +45,7 @@ class RAGMultiModalModel:
         index_root: str = ".byaldi",
         device: str = "cuda",
         verbose: int = 1,
+        cache_dir: Optional[str] = "/cache_dir/models",
     ):
         """Load a ColPali model from a pre-trained checkpoint.
 
@@ -61,6 +62,7 @@ class RAGMultiModalModel:
             index_root=index_root,
             device=device,
             verbose=verbose,
+            cache_dir=cache_dir,
         )
         return instance
 

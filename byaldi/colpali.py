@@ -76,6 +76,7 @@ class ColPaliModel:
                     else None
                 ),
                 token=kwargs.get("hf_token", None) or os.environ.get("HF_TOKEN"),
+                cache_dir=kwargs.get("cache_dir", None),
             )
         elif "colqwen2" in pretrained_model_name_or_path.lower():
             self.model = ColQwen2.from_pretrained(
