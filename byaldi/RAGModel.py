@@ -155,6 +155,17 @@ class RAGMultiModalModel:
             input_item, store_collection_with_index, doc_id, metadata=metadata
         )
 
+    def remove_from_index(self, doc_id: int):
+        """Remove an item to an existing index.
+
+        Parameters:
+            doc_id (int): The document ID for the item being removed.
+
+        Returns:
+            None
+        """
+        return self.model.remove_from_index(doc_id)
+
     def search(
         self,
         query: Union[str, List[str]],
