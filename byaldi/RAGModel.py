@@ -159,7 +159,6 @@ class RAGMultiModalModel:
         self,
         query: Union[str, List[str]],
         k: int = 10,
-        filter_metadata: Optional[Dict[str,str]] = None,
         return_base64_results: Optional[bool] = None,
     ) -> Union[List[Result], List[List[Result]]]:
         """Query an index.
@@ -172,7 +171,7 @@ class RAGMultiModalModel:
         Returns:
             Union[List[Result], List[List[Result]]]: A list of Result objects or a list of lists of Result objects.
         """
-        return self.model.search(query, k, filter_metadata, return_base64_results)
+        return self.model.search(query, k, return_base64_results)
 
     def get_doc_ids_to_file_names(self):
         return self.model.get_doc_ids_to_file_names()

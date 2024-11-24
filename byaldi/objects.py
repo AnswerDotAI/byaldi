@@ -5,24 +5,24 @@ class Result:
     def __init__(
         self,
         doc_id: str,
-        page_num: int,
+        chunk_id: int,
         score: float,
         metadata: Optional[dict] = None,
-        base64: Optional[str] = None,
+        text_chunk: Optional[str] = None,
     ):
         self.doc_id = doc_id
-        self.page_num = page_num
+        self.chunk_id = chunk_id
         self.score = score
         self.metadata = metadata or {}
-        self.base64 = base64
+        self.chunk = text_chunk
 
     def dict(self):
         return {
             "doc_id": self.doc_id,
-            "page_num": self.page_num,
+            "chunk_id": self.chunk_id,
             "score": self.score,
             "metadata": self.metadata,
-            "base64": self.base64,
+            "chunk": self.chunk,
         }
 
     def __getitem__(self, key):
