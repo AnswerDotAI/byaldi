@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Union, cast
 
 import srsly
 import torch
-from colpali_engine.models import ColPali, ColPaliProcessor, ColQwen2, ColQwen2Processor
+from colpali_engine.models import ColPali, ColPaliProcessor, ColQwen2, ColQwen2Processor, ColIdefics3, ColIdefics3Processor
 from pdf2image import convert_from_path
 from PIL import Image
 
@@ -35,9 +35,10 @@ class ColPaliModel:
         if (
             "colpali" not in pretrained_model_name_or_path.lower()
             and "colqwen2" not in pretrained_model_name_or_path.lower()
+            and "colsmolvlm" not in pretrained_model_name_or_path.lower()
         ):
             raise ValueError(
-                "This pre-release version of Byaldi only supports ColPali and ColQwen2 for now. Incorrect model name specified."
+                "This pre-release version of Byaldi only supports ColPali, ColQwen2 and ColSmolVLM for now. Incorrect model name specified."
             )
 
         if verbose > 0:
@@ -89,6 +90,18 @@ class ColPaliModel:
                 ),
                 token=kwargs.get("hf_token", None) or os.environ.get("HF_TOKEN"),
             )
+        elif "colsmolvlm" in pretrained_model_name_or_path.lower():
+            self.model = ColIdefics3.from_pretrained(
+                self.pretrained_model_name_or_path,
+                torch_dtype=torch.bfloat16,
+                device_map=(
+                    "cuda"
+                    if device == "cuda"
+                    or (isinstance(device, torch.device) and device.type == "cuda")
+                    else None
+                ),
+                token=kwargs.get("hf_token", None) or os.environ.get("HF_TOKEN"),
+            )
         self.model = self.model.eval()
 
         if "colpali" in pretrained_model_name_or_path.lower():
@@ -103,6 +116,14 @@ class ColPaliModel:
             self.processor = cast(
                 ColQwen2Processor,
                 ColQwen2Processor.from_pretrained(
+                    self.pretrained_model_name_or_path,
+                    token=kwargs.get("hf_token", None) or os.environ.get("HF_TOKEN"),
+                ),
+            )
+        elif "colsmolvlm" in pretrained_model_name_or_path.lower():
+            self.processor = cast(
+                ColIdefics3Processor,
+                ColIdefics3Processor.from_pretrained(
                     self.pretrained_model_name_or_path,
                     token=kwargs.get("hf_token", None) or os.environ.get("HF_TOKEN"),
                 ),
