@@ -10,6 +10,7 @@ import torch
 from colpali_engine.models import ColPali, ColPaliProcessor, ColQwen2, ColQwen2Processor
 from pdf2image import convert_from_path
 from PIL import Image
+from tqdm.auto import tqdm
 
 from byaldi.objects import Result
 
@@ -357,8 +358,7 @@ class ColPaliModel:
                 raise ValueError(
                     f"Number of metadata entries ({len(metadata)}) does not match number of documents ({len(items)})"
                 )
-            for i, item in enumerate(items):
-                print(f"Indexing file: {item}")
+            for i, item in enumerate(tqdm(items, desc="Indexing files")):
                 doc_id = doc_ids[i] if doc_ids else self.highest_doc_id + 1
                 doc_metadata = metadata[doc_id] if metadata else None
                 self.add_to_index(
