@@ -11,7 +11,7 @@ Byaldi is [RAGatouille](https://github.com/answerdotai/ragatouille)'s mini siste
 
 First, a warning: This is a pre-release library, using uncompressed indexes and lacking other kinds of refinements.
 
-Currently, we support all models supported by the underlying [colpali-engine](https://github.com/illuin-tech/colpali), including the newer, and better, ColQwen2 checkpoints, such as `vidore/colqwen2-v1.0`.  Broadly, the aim is for byaldi to support all ColVLM models.
+Currently, we support all models supported by the underlying [colpali-engine](https://github.com/illuin-tech/colpali), including the newer, and better, ColQwen2 checkpoints, such as `vidore/colqwen2-v1.0`. You can also use `byaldi` to leverage ColSmol models if you have hardware requirements (`vidore/colSmol-256M`, `vidore/colSmol-500M`). Broadly, the aim is for `byaldi` to support all ColVLM models.
 
 Additional backends will be supported in future updates. As byaldi exists to facilitate the adoption of multi-modal retrievers, we intend to also add support for models such as [VisRAG](https://github.com/openbmb/visrag).
 

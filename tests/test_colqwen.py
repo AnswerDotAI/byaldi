@@ -12,7 +12,7 @@ from byaldi.colpali import ColPaliModel
 def colqwen_rag_model() -> Generator[RAGMultiModalModel, None, None]:
     device = get_torch_device("auto")
     print(f"Using device: {device}")
-    yield RAGMultiModalModel.from_pretrained("vidore/colqwen2-v0.1", device=device)
+    yield RAGMultiModalModel.from_pretrained("vidore/colqwen2-v1.0", device=device)
     tear_down_torch()
 
 

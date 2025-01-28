@@ -4,7 +4,6 @@ from typing import Any, Dict, List, Optional, Union
 from PIL import Image
 
 from byaldi.colpali import ColPaliModel
-
 from byaldi.objects import Result
 
 # Optional langchain integration
