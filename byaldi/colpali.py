@@ -87,6 +87,10 @@ class ColPaliModel:
                     or (isinstance(device, torch.device) and device.type == "cuda")
                     else None
                 ),
+                #Fix: Use attn_implementation='eager' for MPS compatibility
+                attn_implementation = "eager" if device == "mps" or (
+                    isinstance(device, torch.device) and device.type == "mps"
+                ) else None,
                 token=kwargs.get("hf_token", None) or os.environ.get("HF_TOKEN"),
             )
         self.model = self.model.eval()
