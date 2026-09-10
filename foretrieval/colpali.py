@@ -142,6 +142,9 @@ class ColPaliModel:
 
         self.n_gpu = torch.cuda.device_count() if n_gpu == -1 else n_gpu
         self.device = device or ("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
+        logger.info(
+                    "Used device is : %s", self.device 
+                )
         self.load_in_4bit = load_in_4bit
         self.load_in_8bit = load_in_8bit
         self.bnb_4bit_quant_type = bnb_4bit_quant_type
@@ -232,8 +235,8 @@ class ColPaliModel:
 
     def _load_model_and_processor(self):
         token = self.kwargs.get("hf_token", None) or os.environ.get("HF_TOKEN")
-        is_cuda = self.device == "cuda" or (isinstance(self.device, torch.device) and self.device.type == "cuda")
-        device_map = "cuda:0" if is_cuda else None
+        is_cuda = "cuda" in str(self.device) # ok for [Union[str, torch.device]]
+        device_map = str(self.device) if is_cuda else None
 
         model_cls, processor_cls = self._resolve_model_and_processor_classes()
 
